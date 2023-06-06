@@ -1,0 +1,24 @@
+{
+    // "compilerOptions": {
+    //     "strict": true,
+    //     "module": "commonjs",
+    //     "target": "es6",
+    //     "experimentalDecorators": false,
+    //     "emitDecoratorMetadata": true,
+    //     "forceConsistentCasingInFileNames": true,
+    //     "allowJs": true
+    // },
+    // "include":
+    // [
+    //     "resources/**/*"
+    // ],
+    // "exclude":
+    // [
+    //     "node_modules"
+    // ]
+
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "allowJs": true
+    }
+}
