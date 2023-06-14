@@ -18,10 +18,13 @@ Auth::routes();
 
 Route::get('/', 'UserController@Redirect')->name('');
 Route::post('/get_events', 'HomeController@getEvents')->name('get_events');
+Route::get('/get_summary_report', 'SummaryReportController@generateSummaryReport')->name('get_summary_report');
+Route::post('get_month_year_report','SummaryReportController@getReportbyMonthYear')->name('get_month_year_report');
+Route::get('/progress_report','ProgressReportController@generateProgressReport')->name('progress_report');
 
 
 Route::group(['middleware' => 'admin'], function () {
-
+    
     Route::get('/home', 'HomeController@index')->name('home');
     Route::group(['prefix' => 'archive', 'as' => 'archive.'], function () {
         Route::get('regular_app', 'ArchiveController@getRegularAPP')->name('regular_app');
