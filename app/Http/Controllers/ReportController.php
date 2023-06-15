@@ -584,7 +584,7 @@ class ReportController extends Controller
       "date_opened" => 'required'
     ]);
 
-    $formatter = new \NumberFormatter("en", \NumberFormatter::SPELLOUT);
+    //$formatter = new \NumberFormatter("en", \NumberFormatter::SPELLOUT);
     $desired_plan_array = [];
     $desired_plan_format = ["number" => null, "project_title" => null, "location" => null, "rows" => null, "bidders" => null];
     $date_opened = date("Y-m-d", strtotime($request->input('date_opened')));

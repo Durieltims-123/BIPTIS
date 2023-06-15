@@ -23,7 +23,19 @@
                     <h2 id="title">Progress of Projects</h2>
                 </div>
                 <div class="card-body">
-
+                <form class="col-sm-8 mx-auto" method="POST" id="project_year_form" action="/get_project_table">
+                        @csrf
+                        <div class="row d-flex">
+                            <div class="form-group col-xs-6 col-sm-6 col-lg-6 ">
+                                <label for="pick_year">Project Year</label>
+                                <input type="text" class="form-control form-control-sm" name="year" id="datepicker" />
+                                <label class="error-msg text-red">@error('year'){{$message}}@enderror</label>
+                            </div>
+                            <div class="form-group col-xs-3 col-sm-3 col-lg-3 mt-4">
+                                <button class="btn btn-primary text-center mx-auto">Submit</button>
+                            </div>
+                        </div>
+                    </form>
                     <div class="table-responsive">
                         <table class="table table-bordered " id="table">
                             <thead class="">
@@ -47,7 +59,6 @@
                                     <th class="text-center"></th>
                                 </tr>
                             </tfoot>
-
                         </table>
                     </div>
                 </div>
@@ -60,9 +71,14 @@
 
 @push('custom-scripts')
 <script>
-    var data = {!!json_encode(session('project_bidders')) !!};
-    $(".datepicker").datepicker({
-        format: 'mm/dd/yyyy'
+    
+    var data = {!!json_encode(session('tabledata')) !!};
+
+    $("#datepicker").datepicker({
+    format: "yyyy",
+    viewMode: "years", 
+    minViewMode: "years",
+    autoclose:true //to close picker once year is selected
     , });
 
     // $('#table thead tr').clone(true).appendTo( '#table thead' );
@@ -72,26 +88,34 @@
         data: data
         , dataType: 'json'
         , columns: [{
-                "data": "project_number"
+                "data": "project_no", 
+                render: function(data, type, row) {
+                    return "<a  class='btn btn-sm shadow-0 border-0 btn-primary text-white' target='_blank'  href='/view_project/" + row.plan_id + "'>" + data + "</i></a>";
+                }
             }
             , {
                 "data": "project_title"
             }
             , {
-                "data": "opening_date"
+                "data": "open_bid"
             }
             , {
                 "data": "process"
             }
             , {
-                "data": "days"
+                "data": "progress"
             }
-        ]
+        ], 
+        language: {
+            paginate: {
+                next: '<i class="fas fa-angle-right">'
+                , previous: '<i class="fas fa-angle-left">'
+            }
+        }
         , order: [2, "asc"]
-        , paging: false
+        , paging: true
         , columnDefs: [{
-            targets: [0, 2, 6, 8, 10]
-            , visible: false
+             visible: true
         }]
         , rowsGroup: [3]
     });
@@ -113,7 +137,6 @@
             });
         }
     });
-
 
     // remove duplicate group header
     var seen = {};
