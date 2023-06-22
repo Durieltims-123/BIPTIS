@@ -141,36 +141,96 @@ class SummaryReportController extends Controller
 
             array_push($project_year, $start_year);
         }
-        return compact('project_year', 'project_SVP', 'project_bidding','project_procurement');
+        return compact('project_year', 'project_SVP', 'project_bidding', 'project_procurement');
     }
 
-    function getStatusProjMun(Request $request){
+    function getStatusProjMun(Request $request)
+    {
         $year = $request->year;
         $status = $request->status;
         $municipal = $request->municipal;
+        $type_count = array();
 
-        $dataTable = DB::table('project_plans')
-        ->join('procacts','project_plans.latest_procact_id','procacts.procact_id')
-        ->join('project_bidders','project_plans.project_bid_id','project_bidders.project_bid')
-        ->join('municipalities','project_plans.municipality_id','municipalities.municipality_id')
-        ->join('projtypes','project_plans.projtype_id','projtypes.projtype_id')
-        ->where([['project_year',$year],['municipality_display',$municipal]])
-        ->get()->toarray();
+        $projtype = DB::table('projtypes')
+            ->select('projtype_id', 'type')
+            ->get();
 
-        if($status == 'complete'){
-            array_map(function($item){
-                $projtype = DB::table('projtypes')
-                ->select('projtype_id')
-                ->get()->toarray();
-                foreach($projtype as $type){
-                    
+        if ($status == 'complete') {
+            foreach ($projtype as $type) {
+                $count_complete = DB::table('project_plans')
+                    ->join('procacts', 'project_plans.latest_procact_id', 'procacts.procact_id')
+                    ->join('project_bidders', 'project_plans.project_bid_id', 'project_bidders.project_bid')
+                    ->join('municipalities', 'project_plans.municipality_id', 'municipalities.municipality_id')
+                    ->join('projtypes', 'project_plans.projtype_id', 'projtypes.projtype_id')
+                    ->join('project_timelines', 'project_plans.plan_id', 'project_timelines.plan_id')
+                    ->where([['project_year', $year], ['municipality_display', $municipal]])
+                    ->where([['project_plans.projtype_id', $type->projtype_id], ['project_plans.status', 'completed']])
+                    ->count();
+                if($count_complete != 0){
+                    $type_count[$type->type] = $count_complete;
                 }
                 
-            },$dataTable);
+
+            }
+        } else if ($status == 'ongoing') {
+            foreach ($projtype as $type) {
+                $count_ongoing = DB::table('project_plans')
+                    ->join('procacts', 'project_plans.latest_procact_id', '=', 'procacts.procact_id')
+                    ->join('project_bidders', 'project_plans.project_bid_id', '=', 'project_bidders.project_bid')
+                    ->join('municipalities', 'project_plans.municipality_id', '=', 'municipalities.municipality_id')
+                    ->join('projtypes', 'project_plans.projtype_id', '=', 'projtypes.projtype_id')
+                    ->join('project_timelines', 'project_plans.plan_id', '=', 'project_timelines.plan_id')
+                    ->where(function ($query) use ($year, $municipal, $type) {
+                        $query->where([['project_year', '=', $year], ['municipality_display', '=', $municipal], ['project_plans.projtype_id', '=', $type->projtype_id]]);
+                    })
+                    ->where('timeline_status', '=', 'set')
+                    ->whereRaw('DATE(procacts.open_bid) > 2022-12-31')
+                    ->orWhere(function ($query) use ($year, $municipal, $type) {
+                        $query->where([['project_year', '=', $year], ['municipality_display', '=', $municipal], ['project_plans.projtype_id', '=', $type->projtype_id]]);
+                    })
+                    ->where(function ($query) {
+                        $query->where('proceed_notice', '=', 'NULL')
+                            ->where('bid_status', '=', 'active')
+                            ->orWhere('bid_status', '=', 'responsive');
+                    })
+                    ->count();
+
+                    if($count_ongoing != 0){
+                        $type_count[$type->type] = $count_ongoing;
+                    }
+
+            }
+        } else if ($status == 'unprocured') {
+            foreach ($projtype as $type) {
+                $count_unprocured = DB::table('project_plans')
+                    ->join('procacts', 'project_plans.latest_procact_id', '=', 'procacts.procact_id')
+                    ->join('project_bidders', 'project_plans.project_bid_id', '=', 'project_bidders.project_bid')
+                    ->join('municipalities', 'project_plans.municipality_id', '=', 'municipalities.municipality_id')
+                    ->join('projtypes', 'project_plans.projtype_id', '=', 'projtypes.projtype_id')
+                    ->join('project_timelines', 'project_plans.plan_id', '=', 'project_timelines.plan_id')
+                    ->where(function ($query) use ($year, $municipal, $type) {
+                        $query->where([['project_year', '=', $year], ['municipality_display', '=', $municipal], ['project_plans.projtype_id', '=', $type->projtype_id]]);
+                    })
+                    ->where('timeline_status', '=', 'pending')
+                    ->whereRaw('DATE(procacts.open_bid) < 2022-12-31')
+                    ->orWhere(function ($query) use ($year, $municipal, $type) {
+                        $query->where([['project_year', '=', $year], ['municipality_display', '=', $municipal], ['project_plans.projtype_id', '=', $type->projtype_id]]);
+                    })
+                    ->where(function ($query) {
+                        $query
+                            ->where('bid_status', '!=', 'active')
+                            ->orWhere('bid_status', '!=', 'responsive');
+                    })
+                    ->count();
+
+                if ($count_unprocured != 0) {
+                    $type_count[$type->type] = $count_unprocured;
+                }
+
+            }
         }
-    
 
+        return compact('type_count');
     }
-
 
 }

@@ -44,7 +44,7 @@ tbody:nth-child(odd) {
               <span>Select Year: </span>
               <input class="year_pick" name ="year_summary" id="year_summary" style="width: 75px;" type="text">
             </form>
-            <center><canvas id="summaryreport" style="width:100%;"></canvas></center>
+            <center><canvas id="summaryreport" style="width:60%; display:inline-block; position: relative;"></canvas></center>
           </div>
         </div>
         <div class="card-body">
@@ -55,7 +55,7 @@ tbody:nth-child(odd) {
             <span>-</span>
             <input class="year_pick " name="select_end_year" id="select_end_year" style="width: 75px;" type="text">
             </form>
-            <center><canvas id="unprocured_project" style="width:100%;"></canvas></center>
+            <center><canvas id="unprocured_project" style="width:100%;display:inline-block; position: relative;"></canvas></center>
           </div>
         </div>
         <div class="card-body">
@@ -66,7 +66,7 @@ tbody:nth-child(odd) {
             <span>-</span>
             <input class="year_pick " name="select_end_year_1" id="select_end_year_1" style="width: 75px;" type="text">
             </form>
-            <center><canvas id="reg_and_supp_project" style="width:100%;"></canvas></center>
+            <center><canvas id="reg_and_supp_project" style="width:100%;display:inline-block; position: relative;"></canvas></center>
           </div>
         </div>
         <div class="card-body">
@@ -77,7 +77,7 @@ tbody:nth-child(odd) {
             <span>-</span>
             <input class="year_pick " name="select_end_year_2" id="select_end_year_2" style="width: 75px;" type="text">
             </form>
-            <center><canvas id="mode_project" style="width:100%;"></canvas></center>
+            <center><canvas id="mode_project" style="width:100%;display:inline-block; position: relative;"></canvas></center>
           </div>
         </div>
         <div class="card-body">
@@ -113,7 +113,7 @@ tbody:nth-child(odd) {
                 <option value="DMDH">DMDH</option>
               </select>
             </form>
-            <center><canvas id="municipal_project" style="width:100%;"></canvas></center>
+            <center><canvas id="municipal_project" style="width:60%;display:inline-block; position: relative; "></canvas></center>
           </div>
         </div>
       </div>
@@ -124,16 +124,15 @@ tbody:nth-child(odd) {
 @endsection
 @push('custom-scripts')
 <!--import Chart.js library -->
-<script>src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.min.js"</script>
 
 <script>
 // Chart 1
-// Summary Report - Doughnut Graph 
+// Summary Report - pie Graph 
 var xValues = [];
 var yValues = [];
-var barColors = ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7"];
+var barColors = [];
 var chart = new Chart("summaryreport", {
-  type: "doughnut",
+  type: "pie",
   data: {
     labels: xValues,
     datasets: [{
@@ -142,18 +141,27 @@ var chart = new Chart("summaryreport", {
     }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Project Summary Report"
+      text: "Project Summary Report",
+      font:{
+        size: 24
+      }
     },
-    cutoutPercentage: 60
+      legend: {
+        position: 'bottom'
+      }
+    },
   }
 });
 
 function update_graph(xValues,yValues,barColors){
   chart.destroy();
   chart = new Chart("summaryreport", {
-  type: "doughnut",
+  type: "pie",
   data: {
     labels: xValues,
     datasets: [{
@@ -162,11 +170,20 @@ function update_graph(xValues,yValues,barColors){
     }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Project Summary Report"
+      text: "Project Summary Report",
+      font:{
+        size: 24
+      }
     },
-    cutoutPercentage: 60
+      legend: {
+        position: 'bottom'
+      }
+    },
   }
 });
 }
@@ -189,8 +206,14 @@ function get_data(year){
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
   success: function(data) {
+    var chart_color=[];
+
         xValues = data.columns;
         yValues = data.data;
+
+    chart_color = dynamicColors(5);
+        barColors = chart_color;
+
         update_graph(xValues,yValues,barColors);
       }
   });
@@ -209,16 +232,28 @@ var chart1 = new Chart("unprocured_project", {
   data: {
     labels: xValues1,
     datasets: [{
+      data: yValues,
+      pointBackgroundColor:barColors1,
       fill: false,
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0,
-      data: yValues1
+      borderColor: barColors1,
+      tension: 0
     }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Yearly Unprocured Projects"
+      text: "Yearly Unprocured Projects",
+      font:{
+        size: 24
+      }
+    },
+      legend: {
+        display: false,
+        position: 'bottom'
+      }
     },
   }
 });
@@ -230,17 +265,28 @@ function update_unprocured_project(xValues,yValues,barColors){
   data: {
     labels: xValues,
     datasets: [{
-      backgroundColor: barColors,
       data: yValues,
+      pointBackgroundColor:barColors,
       fill: false,
-      borderColor: 'black',
+      borderColor: barColors,
       tension: 0
     }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Yearly Unprocured Projects"
+      text: "Yearly Unprocured Projects",
+      font:{
+        size: 24
+      }
+    },
+      legend: {
+        display: false,
+        position: 'bottom'
+      }
     },
     elements: {
       point:{
@@ -270,9 +316,14 @@ function get_unprocured_projects(year){
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
   success: function(data) {
-        xValues1 = data.project_year;
-        yValues1 = data.project_count;
-        update_unprocured_project(xValues1,yValues1,barColors1);
+    var chart_color=[];  
+    chart_color = dynamicColors(1);
+
+    barColors1 = chart_color;
+    xValues1 = data.project_year;
+    yValues1 = data.project_count;
+
+    update_unprocured_project(xValues1,yValues1,barColors1);
       }
   });
 }
@@ -296,31 +347,29 @@ chart2 = new Chart("reg_and_supp_project", {
   data: [],
   backgroundColor: 'rgba(99, 132, 0, 0.6)',
   borderColor: 'rgba(99, 132, 0, 1)',
-  yAxisID: "y-axis-gravity"
   },{
   label: 'Supplemental Projects',
   data: [],
   backgroundColor: 'rgba(0, 99, 132, 0.6)',
   borderColor: 'rgba(0, 99, 132, 1)',
-  yAxisID: "y-axis-density"
 }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Yearly Accomplished Regular and Supplemental Projects"
+      text: "Yearly Accomplished Regular and Supplemental Projects",
+      font:{
+        size: 24
+      }
     },
-    scales: {
-    xAxes: [{
-      barPercentage: 1,
-      categoryPercentage: 0.6
-    }],
-    yAxes: [{
-      id: "y-axis-density"
-    }, {
-      id: "y-axis-gravity"
-    }]
-  }
+      legend: {
+        
+        position: 'bottom'
+      },
+    },
   }
 });
 function update_reg_supp_project(xValues,yValues,zValues){
@@ -329,6 +378,7 @@ function update_reg_supp_project(xValues,yValues,zValues){
   type: "bar",
   data: {
     labels: xValues,
+
     datasets: [{
   label: 'Regular Projects',
   data: yValues,
@@ -342,19 +392,21 @@ function update_reg_supp_project(xValues,yValues,zValues){
 }]
   },
   options: {
-    title: {
+   
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Yearly Accomplished Projects"
+      text: "Yearly Accomplished Projects",
+      font:{
+        size: 24
+      }
     },
-    scales: {
-    xAxes: [{
-      barPercentage: 1,
-      categoryPercentage: 0.6
-    }],
-    yAxes: {
-      beginAtZero: true
-    }
-  }
+      legend: {
+        position: 'bottom'
+      }
+    },
   }
 });
 }
@@ -397,7 +449,7 @@ var xValues3 = [];
 var yValues3 = [];
 var zValues3 = [];
 var aValues3 = [];
-
+var barColors3 = [];
 var chart3 = new Chart("mode_project", {
   type: "line",
   data: {
@@ -405,32 +457,49 @@ var chart3 = new Chart("mode_project", {
     datasets: [{
       label: 'SVP',
       fill: false,
-      borderColor: 'rgb(75, 192, 192)',
+      borderColor: barColors3,
+      backgroundColor:barColors3,
       tension: 0,
       data: yValues3
     },{
       label: 'Bidding',
       fill: false,
-      borderColor: 'rgb(75, 192, 192)',
+      borderColor: barColors3,
       tension: 0,
       data: zValues3
     },{
       label: 'Negotiated',
       fill: false,
-      borderColor: 'rgb(75, 192, 192)',
+      borderColor: barColors3,
       tension: 0,
       data: aValues3
     }]
   },
   options: {
-    title: {
+
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Total Modes of Projects"
+      text: "Total Modes of Projects",
+      font:{
+        size: 24
+      }
+    },
+      legend: {
+        position: 'bottom'
+      },
+          elements: {
+      point:{
+        radius: 7
+      }
+    }
     },
   }
 });
 
-function update_mode_project(xValues,yValues,zValues,aValues){
+function update_mode_project(xValues,yValues,zValues,aValues,barColors){
   chart3.destroy();
   chart3 = new Chart("mode_project", {
   type: "line",
@@ -439,27 +508,41 @@ function update_mode_project(xValues,yValues,zValues,aValues){
     datasets: [{
       label: 'SVP',
       fill: false,
-      borderColor: 'rgb(75, 192, 192)',
+      borderColor: barColors[0],
+      backgroundColor:barColors[0],
       tension: 0,
       data: yValues
     },{
       fill: false,
       label: 'Bidding',
-      borderColor: 'rgb(75, 192, 192)',
+      borderColor: barColors[1],
+      backgroundColor:barColors[1],
       tension: 0,
       data: zValues
     },{
       fill: false,
       label: 'Negotiated',
-      borderColor: 'rgb(75, 192, 192)',
+      borderColor: barColors[2],
+      backgroundColor:barColors[2],
       tension: 0,
       data: aValues
     }]
   },
   options: {
-    title: {
+    
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Total Modes of Projects"
+      text: "Total Modes of Projects",
+      font:{
+        size: 24
+      }
+    },
+      legend: {
+        position: 'bottom'
+      }
     },
     elements: {
       point:{
@@ -489,11 +572,18 @@ function get_mode_projects(year){
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
   success: function(data) {
+
+    var chart_color=[];
         xValues3 = data.project_year;
         yValues3 = data.project_SVP;
         zValues3 = data.project_bidding;
         aValues3 = data.project_procurement;
-        update_mode_project(xValues3,yValues3,zValues3,aValues3);
+    
+        chart_color = dynamicColors(3);
+
+        barColors3 = chart_color;
+
+        update_mode_project(xValues3,yValues3,zValues3,aValues3,barColors3);
       }
   });
 }
@@ -507,7 +597,7 @@ $("#Select_Start_End_Year_2").on("change", function(){
 
 var xValues4 = [];
 var yValues4 = [];
-var barColors4 = ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7"];
+var barColors4 = [];
 var chart4 = new Chart("municipal_project", {
   type: "pie",
   data: {
@@ -518,11 +608,20 @@ var chart4 = new Chart("municipal_project", {
     }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Projects Status per Municipality"
+      text: "Projects Status per Municipality",
+      font:{
+        size: 24
+      }
     },
-    cutoutPercentage: 60
+      legend: {
+        position: 'bottom'
+      }
+    },
   }
 });
 
@@ -538,11 +637,20 @@ function update_graph_municipal(xValues,yValues,barColors){
     }]
   },
   options: {
-    title: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
       display: true,
-      text: "Projects Status per Municipality"
+      text: "Projects Status per Municipality",
+      font:{
+        size: 24
+      }
     },
-    cutoutPercentage: 60
+      legend: {
+        position: 'bottom'
+      }
+    },
   }
 });
 }
@@ -566,10 +674,16 @@ function get_proj_status_mun(year){
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
   success: function(data) {
-        xValues4 = data.columns;
-        yValues4 = data.data;
-        update_graph_municipal(xValues4,yValues4,barColors4);
-      }
+    var chart_color=[];
+    xValues4 = Object.keys(data.type_count);
+    yValues4 = Object.values(data.type_count);
+
+    let length = yValues4.length;
+    chart_color = dynamicColors(length);
+
+    barColors4 = chart_color;
+    update_graph_municipal(xValues4,yValues4,barColors4);
+    }
   });
 }
 
@@ -593,7 +707,35 @@ $( document ).ready(function() {
   get_unprocured_projects(year);
   get_reg_supp_projects(year);
   get_mode_projects(year);
+  get_proj_status_mun(year);
 });
+
+//Generate random color
+function dynamicColors(total) {
+        // var r = Math.floor(Math.random() * 255);
+        // var g = Math.floor(Math.random() * 255);
+        // var b = Math.floor(Math.random() * 255);
+        // return "rgb(" + r + "," + g + "," + b + ")";
+        chart_color = [];
+        var color_set = ['#ffc0cb','#fdf5e6','#7fffd4','#98fb98','#ff1493',
+        '#dda0dd','#f0e68c','#1e90ff','#f08080','#0000ff',
+        '#f4a460','#00bfff','#dc143c','#00ff7f','#8a2be2',
+        '#ffd700','#ff8c00','#00ced1','#ff4500','#b03060',
+        '#008000','#008080','#00ff00','#ffff54','#32CD32',
+      '#000080','#228B22','#8B4513','#DC143C','1b998b',
+    '93b5c6','BD4F6C','4B4A67','f98948','9b8816',
+  'ceb5b7','9CF6F6','3f0d12','D5BF86','d34f73'];
+        let i=0;
+        while(i < total){
+          rand_array = Math.floor(Math.random() * 25);
+          if(chart_color.includes(color_set[rand_array])==false){
+            chart_color.push(color_set[rand_array]);
+            i++;
+          }
+        }
+        return chart_color;
+
+    };
 </script>
 
 @endpush
