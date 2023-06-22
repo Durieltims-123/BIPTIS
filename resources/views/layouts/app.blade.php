@@ -82,8 +82,10 @@
   <script src="{{ asset('argon') }}/vendor/jquery.scrollbar/jquery.scrollbar.min.js"></script>
   <script src="{{ asset('argon') }}/vendor/jquery-scroll-lock/dist/jquery-scrollLock.min.js"></script>
   <script src="{{ asset('argon') }}/vendor/toastr/dist/toastr.min.js"></script>
-  <script src="{{ asset('argon') }}/vendor/chart.js/dist/Chart.min.js"></script>
-  <script src="{{ asset('argon') }}/vendor/chart.js/dist/Chart.extension.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- <script src="{{ asset('argon') }}/vendor/chart.js/dist/Chart.min.js"></script> -->
+  <!-- <script src="{{ asset('argon') }}/vendor/chart.js/dist/Chart.extension.js"></script>  -->
+  <!-- <script>src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.0/chart.min.js"</script> -->
   <script src="{{ asset('argon') }}/js/argon.js?v=1.2.0"></script>
 
   <script>
