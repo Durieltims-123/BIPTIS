@@ -65,24 +65,33 @@ class SummaryReportController extends Controller
         $project_count = array();
         $project_year = array();
 
-        for ($start_year; $start_year <= $end_year; $start_year++) {
             $dataTable = DB::table('project_timelines')
-                ->join('bid_doc_projects', 'project_timelines.procact_id', 'bid_doc_projects.procact_id')
-                ->join('bid_docs', 'bid_doc_projects.bid_doc_id', 'bid_docs.bid_doc_id')
-                ->join('project_plans', 'bid_doc_projects.procact_id', 'project_plans.latest_procact_id')
-                ->join('project_bidders', 'bid_doc_projects.bid_doc_project_id', 'project_bidders.bid_doc_project_id')
-                ->where('project_year', $start_year)
-                ->where(function (Builder $query) {
-                    $query->where('timeline_status', 'pending')
-                        ->orWhere('bid_status', '!=', 'active')
-                        ->orWhere('bid_status', '!=', 'responsive')
-                        ->orWhere('bid_docs.date_received', 'NULL');
-                })
-                ->get()->count();
+                ->leftJoin('project_plans','project_timelines.plan_id','project_plans.plan_id')
+                ->leftJoin('bid_doc_projects', 'project_timelines.procact_id', 'bid_doc_projects.procact_id')
+                ->leftJoin('bid_docs', 'bid_doc_projects.bid_doc_id', 'bid_docs.bid_doc_id')
+                ->leftJoin('project_bidders', 'bid_doc_projects.bid_doc_project_id', 'project_bidders.bid_doc_project_id')
+                ->where([['timeline_status', 'pending'],['project_year','>=',$start_year],['project_year','<=',$end_year],['project_plans.is_old','!=','1']])
+                //->orWhere([['project_year','>=',$start_year],['project_year','<=',$end_year],['bid_status','!=','active'],['bid_status','!=','responsive']])
+                //->orWhere([['project_year','>=',$start_year],['project_year','<=',$end_year],['bid_docs.date_received','NULL']])
+                ->select('project_year',DB::raw('count(*) as total'))
+                ->groupBy('project_year')
+               ->get();
+                //->having('project_year','>=',$start_year)
+                //->count();
+
+                // ->orWhere()
+                // ->where(function (Builder $query) {
+                //     $query->where();
+                //         ->orWhere([['bid_status', '!=', 'active'],['bid_status', '!=', 'responsive']])
+                //         ->orWhere('bid_docs.date_received', 'NULL');
+                // })
+                //->count();
+
+            dd($dataTable);
 
             array_push($project_year, $start_year);
             array_push($project_count, $dataTable);
-        }
+        
 
         return compact('project_year', 'project_count');
 
