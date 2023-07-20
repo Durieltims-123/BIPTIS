@@ -88,6 +88,20 @@ class ScheduleController extends Controller
       $pre_procurement = null;
     }
 
+    // check opening_dates
+    $app_opening = DB::table('project_plans')->select('sub_open_date')->whereIn('plan_id', $plan_ids_array)->distinct()->get();
+
+
+    $month = date('Y-m-d', strtotime('-6 months', strtotime(date('Y-m', strtotime($request->input('sub-of-bid-start'))) . '-01')));
+
+    foreach ($app_opening as $data) {
+      if ($month > strtotime($data->sub_open_date)) {
+        $specific_message = "Sorry! You cannot add schedule. The App Planned Opening date is not the same quarter as the selected opening date. Project/s needs Supplemental APP.";
+        $message = "edit_error";
+        return redirect()->back()->with('message', $message)->with('specific_message', $specific_message);
+      }
+    }
+
     $timeline_status = DB::table('project_timelines')->select("project_timelines.timeline_status")->whereIn('procacts.plan_id', $plan_ids_array)
       ->where('project_activity_status.main_status', 'pending')
       ->join('procacts', 'procacts.procact_id', 'project_timelines.procact_id')

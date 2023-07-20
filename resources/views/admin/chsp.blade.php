@@ -126,6 +126,7 @@
                   <th class="text-center">Source of Fund</th>
                   <th class="text-center">Contractor</th>
                   <th class="text-center">NOA Date Received by BAC Infra</th>
+                  <th class="text-center">Days Consumed</th>
                   <th class="text-center">CHSP Date Issued</th>
                   <th class="text-center">CHSP Date Received by BAC Infra</th>
                   <th class="text-center">CHSP Remarks</th>
@@ -270,6 +271,15 @@ var table=  $('#app_table').DataTable({
     { "data": "source" },
     { "data": "business_name" },
     { "data": "date_received"},
+    { "data":"date_received",
+    render: function ( data, type, row ) {
+      if(row.chsp_id!=null){
+        return "";
+      }else{
+        let today=moment();
+        return today.diff(moment(data,'Y-MM-DD'),'days');
+      }
+    }},
     { "data": "chsp_date_issuance"},
     { "data": "chsp_received_date"},
     { "data": "chsp_remarks"}
@@ -285,7 +295,7 @@ var table=  $('#app_table').DataTable({
     orderable: false
   },
   {
-    targets:[1,2,4],
+    targets:[1,2,4,7,9],
     visible:false
   }],
   rowGroup: {
