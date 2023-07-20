@@ -90,8 +90,8 @@ class APP extends Model
         }
 
         $month_number = $month_now - 6 + 1;
-        $start_month = date('Y-m-d', strtotime($year . '-' . ($month_number+2) . '-01'));
-        $query = $query->where('project_plans.abc_post_date', '<', $start_month)->where([['child.plan_id', null], ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], ['project_plans.project_bid_id', null], ['project_plans.status', 'pending']]);
+        $start_month = date('Y-m-d', strtotime($year . '-' . ($month_number +2). '-01'));
+        $query = $query->where('project_plans.abc_post_date', '<=', $start_month)->where([['child.plan_id', null], ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], ['project_plans.project_bid_id', null], ['project_plans.status', 'pending']]);
       } else {
         $query = $query->where('project_plans.status', $status);
       }
