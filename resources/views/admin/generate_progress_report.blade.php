@@ -48,7 +48,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-
                             </tbody>
                             <tfoot>
                                 <tr>
@@ -86,8 +85,19 @@
 
     var table = $('#table').DataTable({
         data: data
-        , dataType: 'json'
-        , columns: [{
+        , dataType: 'json',
+        dom: 'Bf',
+        buttons: [
+            {
+                extend: 'excel',
+                filename: `Progress Report`
+            },
+            {
+                extend: 'pdf',
+                filename: `Progress Report`
+            }
+        ],
+         columns: [{
                 "data": "project_no", 
                 render: function(data, type, row) {
                     return "<a  class='btn btn-sm shadow-0 border-0 btn-primary text-white' target='_blank'  href='/view_project/" + row.plan_id + "'>" + data + "</i></a>";
