@@ -60,39 +60,89 @@ class SummaryReportController extends Controller
 
     function getUnprocuredProject(Request $request)
     {
-        $start_year = $request->start_year;
-        $end_year = $request->end_year;
-        $project_count = array();
+        $start_year = (int) $request->start_year;
+        $end_year =(int) $request->end_year;
+        $current_year = date("Y");
+        $current_month = date("m");
         $project_year = array();
+        $project_count = array();
 
-            $dataTable = DB::table('project_timelines')
-                ->leftJoin('project_plans','project_timelines.plan_id','project_plans.plan_id')
-                ->leftJoin('bid_doc_projects', 'project_timelines.procact_id', 'bid_doc_projects.procact_id')
-                ->leftJoin('bid_docs', 'bid_doc_projects.bid_doc_id', 'bid_docs.bid_doc_id')
-                ->leftJoin('project_bidders', 'bid_doc_projects.bid_doc_project_id', 'project_bidders.bid_doc_project_id')
-                ->where([['timeline_status', 'pending'],['project_year','>=',$start_year],['project_year','<=',$end_year],['project_plans.is_old','!=','1']])
-                //->orWhere([['project_year','>=',$start_year],['project_year','<=',$end_year],['bid_status','!=','active'],['bid_status','!=','responsive']])
-                //->orWhere([['project_year','>=',$start_year],['project_year','<=',$end_year],['bid_docs.date_received','NULL']])
-                ->select('project_year',DB::raw('count(*) as total'))
-                ->groupBy('project_year')
-               ->get();
-                //->having('project_year','>=',$start_year)
-                //->count();
+        $dataTable = DB::table('project_timelines')
+            ->leftJoin('project_plans', 'project_timelines.plan_id', 'project_plans.plan_id')
+            ->leftJoin('bid_doc_projects', 'project_timelines.procact_id', 'bid_doc_projects.procact_id')
+            ->leftJoin('bid_docs', 'bid_doc_projects.bid_doc_id', 'bid_docs.bid_doc_id')
+            ->leftJoin('project_bidders', 'bid_doc_projects.bid_doc_project_id', 'project_bidders.bid_doc_project_id')
+            ->leftJoin('procacts', 'project_plans.latest_procact_id', 'procacts.procact_id')
+            ->leftJoin('project_plans as child', 'project_plans.plan_id', 'child.parent_id')
+            ->where([['timeline_status', 'pending'], ['project_plans.project_year', '>=', $start_year], ['project_plans.project_year', '<=', ($end_year)], ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], ['project_plans.project_bid_id', null], ['project_plans.status', 'pending'], ['child.plan_id', null]])
+            ->select('project_plans.project_year', DB::raw('count(*) as total'))
+            ->groupBy('project_plans.project_year')
+            ->get()
+            ->toarray();
 
-                // ->orWhere()
-                // ->where(function (Builder $query) {
-                //     $query->where();
-                //         ->orWhere([['bid_status', '!=', 'active'],['bid_status', '!=', 'responsive']])
-                //         ->orWhere('bid_docs.date_received', 'NULL');
-                // })
-                //->count();
+        if ($current_month <= 3) {
+            $current_year_query = 0;
+        } else {
+            $quarter = '';
+            if ($current_month <= 6 && $current_month >= 4) {
+                $quarter = $current_year . '-04-01';
+            } elseif ($current_month <= 9 && $current_month >= 7) {
+                $quarter = $current_year . '-07-01';
+            } elseif ($current_month <= 12 && $current_month >= 10) {
+                $quarter = $current_year . '-10-01';
+            }
 
-            dd($dataTable);
+        }
+        $current_year_query = DB::table('project_timelines')
+            ->leftJoin('project_plans', 'project_timelines.plan_id', 'project_plans.plan_id')
+            ->leftJoin('bid_doc_projects', 'project_timelines.procact_id', 'bid_doc_projects.procact_id')
+            ->leftJoin('bid_docs', 'bid_doc_projects.bid_doc_id', 'bid_docs.bid_doc_id')
+            ->leftJoin('project_bidders', 'bid_doc_projects.bid_doc_project_id', 'project_bidders.bid_doc_project_id')
+            ->leftJoin('procacts', 'project_plans.latest_procact_id', 'procacts.procact_id')
+            ->leftJoin('project_plans as child', 'project_plans.plan_id', 'child.parent_id')
+            ->where([['timeline_status', 'pending'], ['project_plans.project_year', $current_year], 
+            ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], 
+            ['project_plans.project_bid_id', null], ['project_plans.status', 'pending'], ['child.plan_id', null], 
+            ['project_plans.abc_post_date', '<', $quarter]])
+            ->count();
 
-            array_push($project_year, $start_year);
-            array_push($project_count, $dataTable);
-        
+        foreach ($dataTable as $item) {
+            $project_year[] = $item->project_year;
+            if ($item->project_year == $current_year) {
+                $project_count[] = $current_year_query;
+            } else {
+                $project_count[] = $item->total;
+            }
+        }
 
+        while ($start_year <= $end_year) {
+            if (in_array($start_year, $project_year)) {
+                $start_year++;
+            } else {
+                for ($i = 0; $i <= sizeof($project_year)-1; $i++) {
+                    $stopper=$start_year;
+                    if ($start_year < $project_year[$i]) {
+                        $first_array_year = array_slice($project_year,0,$i);
+                        $second_array_year = array_slice($project_year,$i);
+                        $first_array_count = array_slice($project_count,0,$i);
+                        $second_array_count = array_slice($project_count,$i);
+                        array_push($first_array_year,$start_year);
+                        array_push($first_array_count,0);
+                        $project_year = array_merge($first_array_year,$second_array_year);
+                        $project_count = array_merge($first_array_count,$second_array_count);  
+                        $start_year++;
+                    }
+                    if($stopper!=$start_year){
+                        break;
+                    }
+                }
+                if($start_year > end($project_year)){
+                    array_push($project_year,$start_year);
+                    array_push($project_count,0);
+                }
+                continue;
+            }
+        }
         return compact('project_year', 'project_count');
 
     }
@@ -175,10 +225,10 @@ class SummaryReportController extends Controller
                     ->where([['project_year', $year], ['municipality_display', $municipal]])
                     ->where([['project_plans.projtype_id', $type->projtype_id], ['project_plans.status', 'completed']])
                     ->count();
-                if($count_complete != 0){
+                if ($count_complete != 0) {
                     $type_count[$type->type] = $count_complete;
                 }
-                
+
 
             }
         } else if ($status == 'ongoing') {
@@ -204,9 +254,9 @@ class SummaryReportController extends Controller
                     })
                     ->count();
 
-                    if($count_ongoing != 0){
-                        $type_count[$type->type] = $count_ongoing;
-                    }
+                if ($count_ongoing != 0) {
+                    $type_count[$type->type] = $count_ongoing;
+                }
 
             }
         } else if ($status == 'unprocured') {

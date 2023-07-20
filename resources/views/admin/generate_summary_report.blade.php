@@ -300,8 +300,8 @@ function update_unprocured_project(xValues,yValues,barColors){
 function get_unprocured_projects(year){
   //validates null input and compares start_year and end_year
   if ($("#select_start_year").val() =="" && $("#select_end_year").val() ==""&& $("#select_start_year").val() <= $("#select_end_year").val()){
-    $("#select_start_year").val(year-4);
-    $("#select_end_year").val(year+4);
+    $("#select_start_year").val(year-10);
+    $("#select_end_year").val(year);
   }
 
   var request = $.ajax({
@@ -414,8 +414,8 @@ function update_reg_supp_project(xValues,yValues,zValues){
 function get_reg_supp_projects(year){
   //validates null input and compares start_year and end_year
   if ($("#select_start_year_1").val() =="" && $("#select_end_year_1").val() ==""&& $("#select_start_year_1").val() <= $("#select_end_year_1").val()){
-    $("#select_start_year_1").val(year-4);
-    $("#select_end_year_1").val(year+4);
+    $("#select_start_year_1").val(year-10);
+    $("#select_end_year_1").val(year);
   }
 
   var request = $.ajax({
@@ -556,8 +556,8 @@ function update_mode_project(xValues,yValues,zValues,aValues,barColors){
 function get_mode_projects(year){
   //validates null input and compares start_year and end_year
   if ($("#select_start_year_2").val() =="" && $("#select_end_year_2").val() ==""&& $("#select_start_year_2").val() <= $("#select_end_year_2").val()){
-    $("#select_start_year_2").val(year-4);
-    $("#select_end_year_2").val(year+4);
+    $("#select_start_year_2").val(year-10);
+    $("#select_end_year_2").val(year);
   }
 
   var request = $.ajax({
