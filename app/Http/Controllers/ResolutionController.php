@@ -67,11 +67,11 @@ class ResolutionController extends Controller
       return abort("403", "Unknown Resolution");
     }
 
-    $project_plans = (array) $project_plans;
+    
     foreach ($resolution_projects as $resolution_project) {
-      array_push($project_plans, $resolution_project);
+      $project_plans->push($resolution_project);
     }
-    $project_plans = (object) $project_plans;
+
     $links = getUserLinks();
     $user_privilege = getUserPrivilegeByLink('resolution_recommending_awards');
     $access = checkUserAccess('update', $user_privilege);
@@ -1018,6 +1018,10 @@ class ResolutionController extends Controller
                 }
               } else {
                 if ($bidder->bid_status == "non-responsive" || $bidder->procact_id == $bidder->latest_procact_id) {
+                  // edit here
+                  DB::table('project_plans')->where('latest_procact_id', $bidder->procact_id)->update(["project_bid_id" => $bidder->project_bid]);
+                  DB::table('procacts')->where('procact_id', $bidder->procact_id)->update(["post_qual" => $bidder->post_qual_end]);
+                  DB::table('project_activity_satatus')->where('procact_id', $bidder->procact_id)->update(["post_qual" => "finished"]);
                   DB::table('project_bidders')->where('project_bid', $bidder->project_bid)->update(["bid_status" => "responsive"]);
 
                   $log = "Bidder's Status Set to Responsive";

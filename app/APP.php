@@ -90,13 +90,8 @@ class APP extends Model
         }
 
         $month_number = $month_now - 6 + 1;
-<<<<<<< Updated upstream
         $start_month = date('Y-m-d', strtotime($year . '-' . ($month_number +2). '-01'));
         $query = $query->where('project_plans.abc_post_date', '<=', $start_month)->where([['child.plan_id', null], ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], ['project_plans.project_bid_id', null], ['project_plans.status', 'pending']]);
-=======
-        $start_month = date('Y-m-d', strtotime($year . '-' . ($month_number+2) . '-01'));
-        $query = $query->where('project_plans.abc_post_date', '<', $start_month)->where([['child.plan_id', null], ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], ['project_plans.project_bid_id', null], ['project_plans.status', 'pending']]);
->>>>>>> Stashed changes
       } else {
         $query = $query->where('project_plans.status', $status);
       }
@@ -231,40 +226,40 @@ class APP extends Model
     if ($procurement_activity === 'advertisement') {
       $process = 'Advertisement/Posting';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.advertisement_start as start_date', 'project_timelines.advertisement_end as end_date')
-        ->where([['project_timelines.advertisement_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.advertisement_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.advertisement_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.advertisement_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'pre_bid') {
       $process = 'Pre-bid';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.pre_bid_start as start_date', 'project_timelines.pre_bid_end as end_date')
-        ->where([['project_timelines.pre_bid_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.pre_bid_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.pre_bid_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.pre_bid_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'submission') {
       $process = 'Bid Submission/Opening';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.bid_submission_start as start_date', 'project_timelines.bid_submission_end as end_date')
-        ->where([['project_timelines.bid_submission_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.bid_submission_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.bid_submission_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.bid_submission_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'bid_evaluation') {
       $process = 'Bid Evaluation';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.bid_evaluation_start as start_date', 'project_timelines.bid_evaluation_start as end_date')
-        ->where([['project_timelines.bid_evaluation_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.bid_evaluation_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.bid_evaluation_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.bid_evaluation_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'post_qualification') {
       $process = 'Post Qualification';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.post_qualification_start as start_date', 'project_timelines.post_qualification_end as end_date')
-        ->where([['project_timelines.post_qualification_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])
-        ->orWhere([['project_timelines.post_qualification_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.post_qualification_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])
+        ->orWhere([['project_timelines.post_qualification_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'notice_of_award') {
       $process = 'Notice of Award';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.award_notice_start as start_date', 'project_timelines.award_notice_end as end_date')
-        ->where([['project_timelines.award_notice_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.award_notice_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.award_notice_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.award_notice_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'contract_signing') {
       $process = 'Contract Signing/preparation';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.contract_signing_start as start_date', 'project_timelines.contract_signing_end as end_date')
-        ->where([['project_timelines.contract_signing_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.contract_signing_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.contract_signing_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.contract_signing_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'authority_approval') {
       $process = 'Approval by Higher Authority';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.authority_approval_start as start_date', 'project_timelines.authority_approval_end as end_date')
-        ->where([['project_timelines.authority_approval_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.authority_approval_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.authority_approval_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.authority_approval_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else if ($procurement_activity === 'notice_to_proceed') {
       $process = 'Notice to Proceed';
       $events = $events->select('project_plans.plan_id', 'project_plans.project_no', 'project_plans.project_title', 'project_timelines.proceed_notice_start as start_date', 'project_timelines.proceed_notice_end as end_date')
-        ->where([['project_timelines.proceed_notice_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->orWhere([['project_timelines.proceed_notice_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive',0]])->get();
+        ->where([['project_timelines.proceed_notice_start', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->orWhere([['project_timelines.proceed_notice_end', '>=', $date], ['project_plans.is_old', false], ['procacts.is_inactive', 0]])->get();
     } else {
     }
 
@@ -327,9 +322,7 @@ class APP extends Model
       $project_plans = $project_plans->where([['project_activity_status.main_status', 'pending'], ['project_activity_status.authority_approval', 'finished'], ['project_activity_status.proceed_notice', 'pending'], ['project_timelines.timeline_status', 'set']]);
       $project_plans = $project_plans->orWhere([['project_activity_status.main_status', 'pending'], ['project_activity_status.contract_signing', 'finished'], ['project_activity_status.authority_approval', 'not_needed'], ['project_activity_status.proceed_notice', 'pending'], ['project_timelines.timeline_status', 'set']]);
     } else if ($procurement_activity === 'projects_without_resolution') {
-      // $project_plans=$project_plans->where([['project_activity_status.main_status','pending'],['project_activity_status.post_qual','finished']])
-      // ->whereNull('resolution_projects.procact_id');
-      $project_plans = $project_plans->where([['project_activity_status.post_qual', 'finished']])
+      $project_plans = $project_plans->where([['project_activity_status.post_qual', 'finished'], ['project_activity_status.award_notice', 'pending']])
         ->whereNull('resolution_projects.procact_id');
     } else if ($procurement_activity === 'projects_without_bidders') {
       $project_plans = $project_plans->where([['project_timelines.timeline_status', 'set'], ['procacts.open_bid', '<>', null], ['procacts.open_bid', '<', date('Y-m-d', strtotime('+1 day'))]])
@@ -411,12 +404,15 @@ class APP extends Model
     $project_plans = $project_plans->orderBy('procacts.procact_id', 'desc')->get();
 
 
+
+
     if ($procurement_activity === 'for_notice_of_award' || $procurement_activity === 'performance_bond' || $procurement_activity === 'chsp' || $procurement_activity === 'for_contract_generation' || $procurement_activity === 'notice_of_award' || $procurement_activity === 'contract_preparation_signing' || $procurement_activity === 'approval_by_higher_authority' ||  $procurement_activity === 'notice_to_proceed' || $procurement_activity === 'for_notice_to_proceed') {
+
       $project_plans_temp = [];
       foreach ($project_plans as $project_plan) {
+
         $array = DB::table('procacts')
           ->where('procacts.procact_id', $project_plan->procact_id)
-
           ->select(DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words) AS minimum_cost"), DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), 'project_plans.*', 'procacts.*', 'barangays.barangay_name', 'municipalities.municipality_name', "notice_of_awards.*", "notice_of_awards.date_released as noa_released", "notice_of_awards.date_received as noa_received", 'procurement_modes.mode', 'funds.source', 'project_timelines.*', 'project_bidders.*', 'bid_docs.*', 'contractors.*', 'contracts.*', 'contracts.*', 'notice_of_awards.*', 'notice_to_proceeds.*', 'chsp.*')
           ->join('project_plans', 'project_plans.plan_id', 'procacts.plan_id')
           ->join('project_activity_status', 'project_activity_status.procact_id', 'procacts.procact_id')
@@ -439,6 +435,8 @@ class APP extends Model
         $array = $array->join('procurement_modes', 'procurement_modes.mode_id', 'project_plans.mode_id')
           ->join('funds', 'funds.fund_id', 'project_plans.fund_id')
           ->join('municipalities', 'municipalities.municipality_id', 'project_plans.municipality_id')->first();
+
+
 
         if ($array == null) {
 
@@ -466,11 +464,15 @@ class APP extends Model
             ->join('funds', 'funds.fund_id', 'project_plans.fund_id')
             ->join('municipalities', 'municipalities.municipality_id', 'project_plans.municipality_id')->first();
         }
+
+
         if ($array != null) {
           array_push($project_plans_temp, $array);
         }
       }
       $project_plans = $project_plans_temp;
+    } else  if ($procurement_activity === 'projects_without_resolution') {
+      // dd($project_plans);
     } else if ($procurement_activity === 'projects_without_bidders' || $procurement_activity === 'projects_for_rebid' || $procurement_activity === 'projects_for_review') {
 
 
@@ -2219,7 +2221,7 @@ class APP extends Model
   {
 
     $project_bid = DB::table('procacts')
-      ->select('rfqs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("RFQ",rfqs.rfq_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(rfq_projects.detailed_bid_as_read,rfq_projects.detailed_bid_as_evaluated) AS minimum_detailed_cost,twg_evaluations.detailed_bid_as_calculated"), 'project_bidders.project_bid', 'project_bidders.bid_status', 'rfq_projects.rfq_project_id', 'rfq_projects.detailed_bid_as_read', 'rfq_projects.detailed_bid_as_evaluated', 'rfqs.proposed_bid', 'rfqs.bid_as_evaluated', 'rfqs.discount')
+      ->select('rfqs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("RFQ",rfqs.rfq_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_end', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(rfq_projects.detailed_bid_as_read,rfq_projects.detailed_bid_as_evaluated) AS minimum_detailed_cost,twg_evaluations.detailed_bid_as_calculated"), 'project_bidders.project_bid', 'project_bidders.bid_status', 'rfq_projects.rfq_project_id', 'rfq_projects.detailed_bid_as_read', 'rfq_projects.detailed_bid_as_evaluated', 'rfqs.proposed_bid', 'rfqs.bid_as_evaluated', 'rfqs.discount')
       ->join('project_plans', 'procacts.plan_id', 'project_plans.plan_id')
       ->join('funds', 'project_plans.fund_id', 'funds.fund_id')
       ->join('rfq_projects', 'rfq_projects.procact_id', 'procacts.procact_id')
@@ -2233,7 +2235,7 @@ class APP extends Model
 
     if ($project_bid == null) {
       $project_bid = DB::table('procacts')
-        ->select('bid_docs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("BD",bid_docs.bid_doc_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(bid_doc_projects.detailed_bid_as_read,bid_doc_projects.detailed_bid_as_evaluated,twg_evaluations.detailed_bid_as_calculated) AS minimum_detailed_cost"), 'project_bidders.bid_status', 'project_bidders.project_bid', 'bid_doc_projects.bid_doc_project_id', 'bid_doc_projects.detailed_bid_as_read', 'bid_doc_projects.detailed_bid_as_evaluated', 'bid_docs.proposed_bid', 'bid_docs.bid_as_evaluated', 'bid_docs.discount')
+        ->select('bid_docs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("BD",bid_docs.bid_doc_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_end', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(bid_doc_projects.detailed_bid_as_read,bid_doc_projects.detailed_bid_as_evaluated,twg_evaluations.detailed_bid_as_calculated) AS minimum_detailed_cost"), 'project_bidders.bid_status', 'project_bidders.project_bid', 'bid_doc_projects.bid_doc_project_id', 'bid_doc_projects.detailed_bid_as_read', 'bid_doc_projects.detailed_bid_as_evaluated', 'bid_docs.proposed_bid', 'bid_docs.bid_as_evaluated', 'bid_docs.discount')
         ->join('project_plans', 'project_plans.plan_id', 'procacts.plan_id')
         ->join('bid_doc_projects', 'bid_doc_projects.procact_id', 'procacts.procact_id')
         ->join('bid_docs', 'bid_docs.bid_doc_id', 'bid_doc_projects.bid_doc_id')

@@ -27,8 +27,9 @@ Route::post('get_proj_status_mun','SummaryReportController@getStatusProjMun')->n
 Route::get('progress_report','ProgressReportController@generateProgressReport')->name('progress_report');
 Route::post('/get_project_table','ProgressReportController@getTableData')->name('get_project_table');
 
+
 Route::group(['middleware' => 'admin'], function () {
-    
+
     Route::get('/home', 'HomeController@index')->name('home');
     Route::group(['prefix' => 'archive', 'as' => 'archive.'], function () {
         Route::get('regular_app', 'ArchiveController@getRegularAPP')->name('regular_app');
@@ -289,17 +290,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/getdocumentchecklist', 'DocumentTrackingController@getdocumentchecklist')->name('documenttracking.getdocumentchecklist');
     Route::get('/generatedocumentchecklist', 'DocumentTrackingController@generatedocumentchecklist')->name('documenttracking.generatedocumentchecklist');
     Route::get('/getallcontractors', 'DocumentTrackingController@getallcontractors')->name('documenttracking.getallcontractors');
-    Route::get('files/{filename}', function ($filename) {
-        $path = storage_path('app/files/' . $filename);
-        if (!File::exists($path)) {
-            abort(404);
-        }
-        $file = File::get($path);
-        $type = File::mimeType($path);
-        $response = Response::make($file, 200);
-        $response->header("Content-Type", $type);
-        return $response;
-    });
+    // Route::get('files/{filename}', function ($filename) {
+    //     $path = storage_path('app/files/' . $filename);
+    //     if (!File::exists($path)) {
+    //         abort(404);
+    //     }
+    //     $file = File::get($path);
+    //     $type = File::mimeType($path);
+    //     $response = Response::make($file, 200);
+    //     $response->header("Content-Type", $type);
+    //     return $response;
+    // });
 
     // Request for Extension
     Route::post('/get_all_post_qual_without_extension', 'RequestForExtensionController@getAllPostQual')->name('get_all_post_qual_without_extension');

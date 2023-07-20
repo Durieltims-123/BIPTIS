@@ -399,7 +399,7 @@
                 <th class="text-center">ID</th>
                 <th class="text-center">Project#</th>
                 <th class="text-center">Project Title</th>
-                <th class="text-center">Type</th>
+                <th class="text-center">APP Planned Opening</th>
                 <th class="text-center">Location</th>
                 <th class="text-center">Group#</th>
                 <th class="text-center">Cluster</th>
@@ -443,6 +443,11 @@ $(window).keydown(function(event){
     return false;
   }
 });
+
+
+
+
+
 
 // table data
 let data= @json(session('newData'));
@@ -850,9 +855,16 @@ var table=  $('#app_table').DataTable({
       }
     }},
     {"data":"plan_id"},
-    {"data":"project_no"},
+    {"data": "project_no", render: function(data, type, row) {
+      return "<a class='btn btn-sm shadow-0 border-0 btn-primary text-white' target='_blank' href='/view_project/" + row.plan_id + "'>" + data + "</i></a>";}
+    },
     {"data":"project_title"},
-    {"data":"project_type"},
+    {
+    "data": "sub_open_date"
+    , render: function(data, type, row) {
+    return moment(data).format('MMM-YYYY');
+    }
+    },
     {"data":"municipality_name"},
     {"data":"app_group_no"},
     {"data":"current_cluster"},
