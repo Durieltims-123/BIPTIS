@@ -24,10 +24,10 @@ tbody:nth-child(odd) {
           <h2 id="title">Project Summary Report</h2>
         </div>
         <div class="card-body">
-          <div>
-            <form id="Update_Mon_Yr">
+          <div class="reload_content">
+            <form id="Update_Mon_Yr" class='trigger_form'>
             <span>Select Month: </span>
-              <select name="month" id="month_summary">
+              <select name="month" class='activate_jquery' id="month_summary">
                 <option value="01">January</option>
                 <option value="02">February</option>
                 <option value="03">March</option>
@@ -42,11 +42,36 @@ tbody:nth-child(odd) {
                 <option value="12">December</option>
               </select>
               <span>Select Year: </span>
-              <input class="year_pick" name ="year_summary" id="year_summary" style="width: 75px;" type="text">
+              <input class='test year_pick' name ="year_summary" id="year_summary" style="width: 75px;" type="text">
             </form>
-            <center><canvas id="summaryreport" style="width:60%; display:inline-block; position: relative;"></canvas></center>
+            <div class="d-flex justify-content-center">
+              <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input table_switch" id="summarySwitch">
+                <label class="label_chart custom-control-label" for="summarySwitch">Switch View</label>
+              </div>
+            </div>
+              <center><canvas id="summaryreport" class="present_chart" style="width:60%; display:inline-block; position: relative;"></canvas></center>
+            <div class="present_table d-none">
+              <table class="table table-bordered " id="table">
+                <thead class="">
+                  <tr class="bg-primary text-white">
+                  <th class="text-center">Project Number</th>
+                  <th class="text-center">Title</th>
+                  <th class="text-center">Status</th>
+                  </tr>
+                </thead>
+                  <tbody>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th class="text-center"></th>
+                      <th class="text-center"></th>
+                      <th class="text-center"></th>
+                    </tr>
+                  </tfoot>
+                 </table>
+             </div>
           </div>
-        </div>
         <div class="card-body">
           <div>
             <form id="Select_Start_End_Year">
@@ -81,8 +106,8 @@ tbody:nth-child(odd) {
           </div>
         </div>
         <div class="card-body">
-          <div>
-            <form id="Select_Year_Municipal">
+          <div class="reload_content">
+            <form id="Select_Year_Municipal" class='trigger_form'>
             <span>Select Year: </span>
             <input class="year_pick " name ="select_start_year_3" id="select_year" style="width: 75px;" type="text">
             <span>Status: </span>
@@ -90,6 +115,7 @@ tbody:nth-child(odd) {
               <option value = "complete">Complete</option>
               <option value="ongoing">Ongoing</option>
               <option value="unprocured">Unprocured</option>
+              <option value="all">All</option>
             </select>
             <span>Municipality: </span>
             <select name="municipality" id="municipality">
@@ -111,9 +137,41 @@ tbody:nth-child(odd) {
                 <option value="KDH">KDH</option>
                 <option value="NBDH">NBDH</option>
                 <option value="DMDH">DMDH</option>
+                <option value="all">All</option>
               </select>
             </form>
-            <center><canvas id="municipal_project" style="width:60%;display:inline-block; position: relative; "></canvas></center>
+            <div class="d-flex justify-content-center">
+              <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input table_switch" id="municipalSwitch">
+                <label class="label_chart custom-control-label" for="municipalSwitch">Switch View</label>
+              </div>
+            </div>
+            <center><canvas id="municipal_project" class="present_chart" style="width:60%; display:inline-block; position: relative; "></canvas></center>
+            <div class="present_table d-none">
+              <table class="table table-bordered " id="table_1">
+                <thead class="">
+                  <tr class="bg-primary text-white">
+                  <th class="text-center">Project Number</th>
+                  <th class="text-center">Title</th>
+                  <th class="text-center">Project Type</th>
+                  <th class="text-center">Municipality</th>
+                  <th class="text-center">Status</th>
+                  </tr>
+                </thead>
+                  <tbody>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th class="text-center"></th>
+                      <th class="text-center"></th>
+                      <th class="text-center"></th>
+                      <th class="text-center"></th>
+                      <th class="text-center"></th>
+                    </tr>
+                  </tfoot>
+                 </table>
+             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -126,6 +184,34 @@ tbody:nth-child(odd) {
 <!--import Chart.js library -->
 
 <script>
+
+var switcher=0;
+
+function changeSwitcher(newVal) {
+  switcher = newVal; // updating the value of the global variable
+}
+
+
+$('.table_switch').click(function(){
+
+  if ($(this).is(":checked"))
+  {
+    $(this).parents('.reload_content').find('.present_chart').addClass('d-none');
+    $(this).parents('.reload_content').find('.present_table').removeClass('d-none');
+
+    changeSwitcher(1);
+    $(this).parents('.reload_content').find('.trigger_form').trigger('change');
+
+  }else{
+    $(this).parents('.reload_content').find('.present_table').addClass('d-none');
+    $(this).parents('.reload_content').find('.present_chart').removeClass('d-none');
+
+    changeSwitcher(0);
+    $(this).parents('.reload_content').find('.trigger_form').trigger('change');
+  }
+
+});
+
 // Chart 1
 // Summary Report - pie Graph 
 var xValues = [];
@@ -188,40 +274,125 @@ function update_graph(xValues,yValues,barColors){
 });
 }
 
-function get_data(year){
-
+function get_data(year,switcher){
+  var switcher = window.switcher;
   if ($("#year_summary").val() ==""){
     $("#year_summary").val(year);
-
   }
+
   var request = $.ajax({
   url: "/get_month_year_report",
   type: "POST",
   data: {
     year:$("#year_summary").val(),
-    month:$("#month_summary").val()
+    month:$("#month_summary").val(),
+    switcher:switcher
   },
-  dataType: "JSON",
+  // dataType: "JSON",
   headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
   success: function(data) {
-    var chart_color=[];
+    if(switcher == 0){
+      barColors = dynamicColors(5);
+      xValues = data.columns;
+      yValues = data.data;
 
-        xValues = data.columns;
-        yValues = data.data;
+      update_graph(xValues,yValues,barColors);
+    }else{
+     if($.fn.dataTable.isDataTable('#table')){
+      var table = $('#table').DataTable();
+      table.destroy();
+     }
+     var month = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+     var selected_month = month[parseInt($("#month_summary").val())-1];
+      var table = $('#table').DataTable({
+        data: data
+        // , dataType: 'json'
+        , dom: 'Bf',
+        buttons: [
+            {
+                extend: 'excel',
+                filename: `Summary Report for the Month of ${selected_month}`
+            },
+            {
+                extend: 'pdf',
+                filename: `Summary Report for the Month of ${selected_month}`
+            }
+        ], columns: [{
+                "data": "project_no", 
+                render: function(data, type, row) {
+                    return "<a  class='btn btn-sm shadow-0 border-0 btn-primary text-white' target='_blank'  href='/view_project/" + row.plan_id + "'>" + data + "</i></a>";
+                }
+            }
+            , {
+                "data": "project_title"
+            }
+            , {
+                "data": "current_status"
+            }
+        ], 
+        language: {
+            paginate: {
+                next: '<i class="fas fa-angle-right">'
+                , previous: '<i class="fas fa-angle-left">'
+            }
+        }
+        // , order: [2, "asc"]
+        // , paging: true
+        // , columnDefs: [{
+        //      visible: true
+        // }]
+        // , rowsGroup: [3]
+    });
 
-    chart_color = dynamicColors(5);
-        barColors = chart_color;
+    $('#table thead tr:eq(1) th').each(function(i) {
+        var title = $(this).text();
+        if (title != "") {
+            $(this).html('<input type="text" placeholder="Search" />');
+            $(this).addClass('sorting_disabled');
+            var index = 0;
 
-        update_graph(xValues,yValues,barColors);
+            $('input', this).on('keyup change', function() {
+                if (table.column(':contains(' + title + ')').search() !== this.value) {
+                    table
+                        .column(':contains(' + title + ')')
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        }
+    });
+
+    // remove duplicate group header
+    var seen = {};
+    $('.dtrg-group').each(function() {
+        var txt = $(this).text();
+        if (seen[txt])
+            $(this).remove();
+        else
+            seen[txt] = true;
+    });
+
+    }
+
       }
+    //   error: function(data) { 
+    //     alert("Status: " +data); 
+
+    // }       
   });
 }
+
+function update_table(){
+  var data = {!!json_encode(session('tabledata')) !!};
+}
+
 
 $("#Update_Mon_Yr").on("change", function(){
   get_data();
 });
+
 //Chart 2
 //Unprocured Projects - Trend Lines
 var xValues1 = [];
@@ -337,6 +508,8 @@ $("#Select_Start_End_Year").on("change", function(){
 var xValues2 = [];
 var yValues2 = [];
 var zValues2 = [];
+var aValues2 = [];
+var bValues2 = [];
 var barColors1 = [];
 chart2 = new Chart("reg_and_supp_project", {
   type: "bar",
@@ -372,7 +545,7 @@ chart2 = new Chart("reg_and_supp_project", {
     },
   }
 });
-function update_reg_supp_project(xValues,yValues,zValues){
+function update_reg_supp_project(xValues,yValues,zValues,aValues,bValues){
   chart2.destroy();
   chart2 = new Chart("reg_and_supp_project", {
   type: "bar",
@@ -380,19 +553,28 @@ function update_reg_supp_project(xValues,yValues,zValues){
     labels: xValues,
 
     datasets: [{
+      label: 'Total Project',
+      data: aValues,
+      backgroundColor: '#DC136C',
+      borderColor: '#DC136C'
+    },{
+      label:'Total Project Completed',
+      data:bValues,
+      backgroundColor: '#026C7C',
+      borderColor: '#026C7C'
+    },{
   label: 'Regular Projects',
   data: yValues,
-  backgroundColor: 'rgba(99, 132, 0, 0.6)',
-  borderColor: 'rgba(99, 132, 0, 1)',
+  backgroundColor: '#548C2F',
+  borderColor: '#548C2F',
   },{
   label: 'Supplemental Projects',
   data: zValues,
-  backgroundColor: 'rgba(0, 99, 132, 0.6)',
-  borderColor: 'rgba(0, 99, 132, 1)',
+  backgroundColor: '#53599A',
+  borderColor: '#53599A',
 }]
   },
   options: {
-   
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -433,7 +615,9 @@ function get_reg_supp_projects(year){
         xValues2 = data.project_year;
         yValues2 = data.project_reg;
         zValues2 = data.project_supp;
-        update_reg_supp_project(xValues2,yValues2,zValues2);
+        aValues2 = data.project_total;
+        bValues2 = data.project_actual;
+        update_reg_supp_project(xValues2,yValues2,zValues2,aValues2,bValues2);
       }
   });
 }
@@ -656,6 +840,7 @@ function update_graph_municipal(xValues,yValues,barColors){
 }
 
 function get_proj_status_mun(year){
+  var switcher = window.switcher;
 
   if ($("#select_year").val() ==""){
     $("#select_year").val(year);
@@ -667,23 +852,106 @@ function get_proj_status_mun(year){
   data: {
     year:$("#select_year").val(),
     status:$("#status").val(),
-    municipal:$("#municipality").val()
+    municipal:$("#municipality").val(),
+    switcher:switcher
   },
   dataType: "JSON",
   headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
   success: function(data) {
+    if(switcher == 0){
     var chart_color=[];
-    xValues4 = Object.keys(data.type_count);
-    yValues4 = Object.values(data.type_count);
-
+    xValues4 = data.labels;
+    yValues4 = data.type_count;
     let length = yValues4.length;
-    chart_color = dynamicColors(length);
+    barColors4 = dynamicColors(length);
 
-    barColors4 = chart_color;
     update_graph_municipal(xValues4,yValues4,barColors4);
+    }else{
+      if($.fn.dataTable.isDataTable('#table_1')){
+      var table = $('#table_1').DataTable();
+      table.destroy();
+     }
+      var municipality = $("#municipality").val();
+      var table = $('#table_1').DataTable({
+        data: data
+        // , dataType: 'json'
+        , dom: 'Bf',
+        buttons: [
+          {
+                extend: 'excel',
+                filename: `Summary Report for the Municipality of ${municipality}`
+            },
+            {
+                extend: 'pdf',
+                filename: `Summary Report for the Municipality of ${municipality}`
+            }
+        ], columns: [{
+                "data": "project_no", 
+                render: function(data, type, row) {
+                    return "<a  class='btn btn-sm shadow-0 border-0 btn-primary text-white' target='_blank'  href='/view_project/" + row.plan_id + "'>" + data + "</i></a>";
+                }
+            }
+            , {
+                "data": "project_title"
+            },{
+              "data":"type"
+            },
+            {
+              "data":"municipality_display"
+            }
+            , {
+                "data": "current_status"
+            }
+        ], 
+        language: {
+            paginate: {
+                next: '<i class="fas fa-angle-right">'
+                , previous: '<i class="fas fa-angle-left">'
+            }
+        }
+        // , order: [2, "asc"]
+        // , paging: true
+        // , columnDefs: [{
+        //      visible: true
+        // }]
+        // , rowsGroup: [3]
+    });
+
+    $('#table_1 thead tr:eq(1) th').each(function(i) {
+        var title = $(this).text();
+        if (title != "") {
+            $(this).html('<input type="text" placeholder="Search" />');
+            $(this).addClass('sorting_disabled');
+            var index = 0;
+
+            $('input', this).on('keyup change', function() {
+                if (table.column(':contains(' + title + ')').search() !== this.value) {
+                    table
+                        .column(':contains(' + title + ')')
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        }
+    });
+
+    // remove duplicate group header
+    var seen = {};
+    $('.dtrg-group').each(function() {
+        var txt = $(this).text();
+        if (seen[txt])
+            $(this).remove();
+        else
+            seen[txt] = true;
+    });
+
     }
+
+    }
+
+    
   });
 }
 
@@ -712,29 +980,17 @@ $( document ).ready(function() {
 
 //Generate random color
 function dynamicColors(total) {
-        // var r = Math.floor(Math.random() * 255);
-        // var g = Math.floor(Math.random() * 255);
-        // var b = Math.floor(Math.random() * 255);
-        // return "rgb(" + r + "," + g + "," + b + ")";
         chart_color = [];
-        var color_set = ['#ffc0cb','#fdf5e6','#7fffd4','#98fb98','#ff1493',
-        '#dda0dd','#f0e68c','#1e90ff','#f08080','#0000ff',
+        var color_set = ['#ffc0cb','#f08080','#7fffd4','#98fb98','#ff1493',
+        '#dda0dd','#f0e68c','#1e90ff','#0000ff',
         '#f4a460','#00bfff','#dc143c','#00ff7f','#8a2be2',
         '#ffd700','#ff8c00','#00ced1','#ff4500','#b03060',
         '#008000','#008080','#00ff00','#ffff54','#32CD32',
-      '#000080','#228B22','#8B4513','#DC143C','1b998b',
+      '#000080','#228B22','#8B4513','#fdf5e6','#DC143C','1b998b',
     '93b5c6','BD4F6C','4B4A67','f98948','9b8816',
   'ceb5b7','9CF6F6','3f0d12','D5BF86','d34f73'];
-        let i=0;
-        while(i < total){
-          rand_array = Math.floor(Math.random() * 25);
-          if(chart_color.includes(color_set[rand_array])==false){
-            chart_color.push(color_set[rand_array]);
-            i++;
-          }
-        }
+        chart_color = color_set.slice(0,total);
         return chart_color;
-
     };
 </script>
 
