@@ -290,17 +290,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/getdocumentchecklist', 'DocumentTrackingController@getdocumentchecklist')->name('documenttracking.getdocumentchecklist');
     Route::get('/generatedocumentchecklist', 'DocumentTrackingController@generatedocumentchecklist')->name('documenttracking.generatedocumentchecklist');
     Route::get('/getallcontractors', 'DocumentTrackingController@getallcontractors')->name('documenttracking.getallcontractors');
-    Route::get('files/{filename}', function ($filename) {
-        $path = storage_path('app/files/' . $filename);
-        if (!File::exists($path)) {
-            abort(404);
-        }
-        $file = File::get($path);
-        $type = File::mimeType($path);
-        $response = Response::make($file, 200);
-        $response->header("Content-Type", $type);
-        return $response;
-    });
+    // Route::get('files/{filename}', function ($filename) {
+    //     $path = storage_path('app/files/' . $filename);
+    //     if (!File::exists($path)) {
+    //         abort(404);
+    //     }
+    //     $file = File::get($path);
+    //     $type = File::mimeType($path);
+    //     $response = Response::make($file, 200);
+    //     $response->header("Content-Type", $type);
+    //     return $response;
+    // });
 
     // Request for Extension
     Route::post('/get_all_post_qual_without_extension', 'RequestForExtensionController@getAllPostQual')->name('get_all_post_qual_without_extension');
