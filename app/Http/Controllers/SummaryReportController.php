@@ -132,7 +132,6 @@ class SummaryReportController extends Controller
                         $project_count = array_merge($first_array_count,$second_array_count);  
                         $start_year++;
                     }
-                    
                     if($stopper!=$start_year){
                         break;
                     }
