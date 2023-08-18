@@ -902,7 +902,7 @@ class ScheduleController extends Controller
       DB::table('project_logs')->insert([
         'plan_id' =>  $project_plan->plan_id,
         'user_id' => Auth::user()->id,
-        'project_log_type' => "Deferred Project Opening",
+        'project_log_type' => "Deferred Project",
         'project_log_remarks' => $remarks,
         'log_date' => date("Y-m-d"),
         'created_at' => now(),

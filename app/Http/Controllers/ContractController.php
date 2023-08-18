@@ -35,6 +35,7 @@ class ContractController extends Controller
 
   public function submitPerformanceBond(Request $request)
   {
+
     // $contracts = Contract::all();
     // foreach ($contracts as $contract) {
     //   if ($contract->performance_bond_issuance == null) {
@@ -57,7 +58,8 @@ class ContractController extends Controller
     $existing_contract = Contract::where('project_bid_id', $project_bid)->first();
     $cluster_bids = $APP->getClusterBids($project_bid);
     $data = $request->validate([
-      "performance_bond_issuance" => "required|before:tomorrow|after_or_equal:" . $noa->date_received_by_contractor,
+      // "performance_bond_issuance" => "required|before:tomorrow|after_or_equal:" . $noa->date_received_by_contractor,
+      "performance_bond_issuance" => "required|before:tomorrow",
       "performance_bond_expiration" => "required|after:performance_bond_issuance",
       "date_received_by_bac" => "required|before:tomorrow|after_or_equal:request_to_submit_performance_bond"
     ]);
@@ -66,6 +68,7 @@ class ContractController extends Controller
     $performance_bond_issuance = date("Y-m-d", strtotime($request->input('performance_bond_issuance')));
     $performance_bond_duration = $request->input('performance_bond_duration');
     $performance_bond_remarks = $request->input('performance_bond_remarks');
+
 
     if ($existing_contract === null) {
       // Duplicate Checker

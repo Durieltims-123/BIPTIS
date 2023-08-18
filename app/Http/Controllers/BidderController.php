@@ -496,6 +496,14 @@ class BidderController extends Controller
     return view("twg.post_qual_project_bidders", ["data" => $data, "links" => $links, 'user_privilege' => $user_privilege]);
   }
 
+  public function getLatestPQER(Request $request)
+  {
+    $pqer = DB::table('pqer')->where('contractor_id', $request->contractor_id)->orderBy('pqer_id', 'desc')->first();
+    return compact('pqer');
+  }
+
+
+
   public function disqualifyBidder(Request $request)
   {
     $data = $request->validate([
@@ -589,11 +597,11 @@ class BidderController extends Controller
 
     $clusters = $APP->getClusterBids($request->input('bidder_id'));
     foreach ($clusters as $project_bidder) {
-      
+
       $bidders = $APP->getBiddersData($project_bidder->procact_id, 'responsive,active');
       if (count($bidders) != 0) {
         DB::table('procacts')->where('procact_id', $project_bidder->procact_id)->update([
-          "is_inactive"=>false
+          "is_inactive" => false
         ]);
       }
     }
@@ -615,12 +623,33 @@ class BidderController extends Controller
   public function setTWGNonResponsiveBiddder(Request $request)
   {
     $data = $request->validate([
-      "remarks" => 'required',
       "post_qual_start_date" => 'required',
       "post_qual_end_date" => 'required|after:post_qual_start_date',
       "bid_as_calculated" => 'required',
-      "detailed_bid_as_calculated" => 'required_if:process,"detailed_non_responsive"'
+      "detailed_bid_as_calculated" => 'required_if:process,"detailed_non_responsive"',
+      "philgeps" => 'required_if:procurement_mode,"Bidding"',
+      "ongoing_projects" => 'required_if:procurement_mode,"Bidding"',
+      "slcc" => 'required_if:procurement_mode,"Bidding"',
+      "bsd" => 'required_if:procurement_mode,"Bidding"',
+      "nfcc" => 'required_if:procurement_mode,"Bidding"',
+      "spcab" => 'required_if:procurement_mode,"Bidding"',
+      "orgchart" => 'required_if:procurement_mode,"Bidding"',
+      "key_personnel" => 'required_if:procurement_mode,"Bidding"',
+      "major_equipment" => 'required_if:procurement_mode,"Bidding"',
+      "oss" => 'required_if:procurement_mode,"Bidding"',
+      "jva" => 'required_if:procurement_mode,"Bidding"',
+      "boq" => 'required_if:procurement_mode,"Bidding"',
+      "detailed_estimates" => 'required_if:procurement_mode,"Bidding"',
+      "cash_flow" => 'required_if:procurement_mode,"Bidding"',
+      "provincial_permit" => 'required_if:procurement_mode,"Bidding"',
+      "construction_shedule" => 'required_if:procurement_mode,"Bidding"',
+      "man_power" => 'required_if:procurement_mode,"Bidding"',
+      "construction_methods" => 'required_if:procurement_mode,"Bidding"',
+      "eus" => 'required_if:procurement_mode,"Bidding"',
+      "chsp" => 'required_if:procurement_mode,"Bidding"',
+      "pert_cpm" => 'required_if:procurement_mode,"Bidding"',
     ]);
+
 
     $message = "success";
     $bid_as_calculated = str_replace(",", "", $request->input('bid_as_calculated'));
@@ -672,6 +701,31 @@ class BidderController extends Controller
                 "twg_evaluation_remarks" => $request->input('remarks'),
                 'created_at'  => now(),
                 'updated_at' => now()
+              ]);
+              DB::table("pqer")->insert([
+                "pqer_bidder_id" => $cluster->project_bid,
+                "contractor_id" => $request->contractor_id,
+                "philgeps" => $request->philgeps,
+                "ongoing_projects" => $request->ongoing_projects,
+                "slcc" => $request->slcc,
+                "bsd" => $request->bsd,
+                "nfcc" => $request->nfcc,
+                "spcab" => $request->spcab,
+                "orgchart" => $request->orgchart,
+                "key_personnel" => $request->key_personnel,
+                "major_equipment" => $request->major_equipment,
+                "oss" => $request->oss,
+                "jva" => $request->jva,
+                "boq" => $request->boq,
+                "detailed_estimates" => $request->detailed_estimates,
+                "cash_flow" => $request->cash_flow,
+                "provincial_permit" => $request->provincial_permit,
+                "construction_shedule" => $request->construction_shedule,
+                "man_power" => $request->man_power,
+                "construction_methods" => $request->construction_methods,
+                "eus" => $request->eus,
+                "chsp" => $request->chsp,
+                "pert_cpm" => $request->pert_cpm,
               ]);
             }
           }
@@ -737,7 +791,28 @@ class BidderController extends Controller
       "post_qual_start_date" => 'required',
       "post_qual_end_date" => 'required|after_or_equal:post_qual_start_date',
       "bid_as_calculated" => 'required',
-      "detailed_bid_as_calculated" => 'required_if:process,"detailed_responsive"'
+      "detailed_bid_as_calculated" => 'required_if:process,"detailed_responsive"',
+      "philgeps" => 'required_if:procurement_mode,"Bidding"',
+      "ongoing_projects" => 'required_if:procurement_mode,"Bidding"',
+      "slcc" => 'required_if:procurement_mode,"Bidding"',
+      "bsd" => 'required_if:procurement_mode,"Bidding"',
+      "nfcc" => 'required_if:procurement_mode,"Bidding"',
+      "spcab" => 'required_if:procurement_mode,"Bidding"',
+      "orgchart" => 'required_if:procurement_mode,"Bidding"',
+      "key_personnel" => 'required_if:procurement_mode,"Bidding"',
+      "major_equipment" => 'required_if:procurement_mode,"Bidding"',
+      "oss" => 'required_if:procurement_mode,"Bidding"',
+      "jva" => 'required_if:procurement_mode,"Bidding"',
+      "boq" => 'required_if:procurement_mode,"Bidding"',
+      "detailed_estimates" => 'required_if:procurement_mode,"Bidding"',
+      "cash_flow" => 'required_if:procurement_mode,"Bidding"',
+      "provincial_permit" => 'required_if:procurement_mode,"Bidding"',
+      "construction_shedule" => 'required_if:procurement_mode,"Bidding"',
+      "man_power" => 'required_if:procurement_mode,"Bidding"',
+      "construction_methods" => 'required_if:procurement_mode,"Bidding"',
+      "eus" => 'required_if:procurement_mode,"Bidding"',
+      "chsp" => 'required_if:procurement_mode,"Bidding"',
+      "pert_cpm" => 'required_if:procurement_mode,"Bidding"',
     ]);
 
     $APP = new APP;
@@ -799,6 +874,32 @@ class BidderController extends Controller
 
                 ]);
               }
+
+              DB::table("pqer")->insert([
+                "pqer_bidder_id" => $cluster->project_bid,
+                "contractor_id" => $request->contractor_id,
+                "philgeps" => $request->philgeps,
+                "ongoing_projects" => $request->ongoing_projects,
+                "slcc" => $request->slcc,
+                "bsd" => $request->bsd,
+                "nfcc" => $request->nfcc,
+                "spcab" => $request->spcab,
+                "orgchart" => $request->orgchart,
+                "key_personnel" => $request->key_personnel,
+                "major_equipment" => $request->major_equipment,
+                "oss" => $request->oss,
+                "jva" => $request->jva,
+                "boq" => $request->boq,
+                "detailed_estimates" => $request->detailed_estimates,
+                "cash_flow" => $request->cash_flow,
+                "provincial_permit" => $request->provincial_permit,
+                "construction_shedule" => $request->construction_shedule,
+                "man_power" => $request->man_power,
+                "construction_methods" => $request->construction_methods,
+                "eus" => $request->eus,
+                "chsp" => $request->chsp,
+                "pert_cpm" => $request->pert_cpm,
+              ]);
             }
           } else {
             $message = "range_error";
@@ -1124,7 +1225,7 @@ class BidderController extends Controller
                   "project_bid_id" => $id
                 ]);
 
-                $extend = $APP->extendSpecificProcess($cluster->plan_id, "post_qualification", date("m/d/Y", strtotime($twg_evaluation->post_qual_end)), "Automatic Extension");
+                $extend = $APP->extendSpecificProcess($cluster->plan_id, "post_qualification", date("m/d/Y", strtotime($twg_evaluation->post_qual_end)), "Project Timeline Adjusted");
                 $parameters = ["plan_id" => $cluster->plan_id, "post_qualification_date" => date("m/d/Y", strtotime($twg_evaluation->post_qual_end)), "bypass" => true];
                 $request = new \Illuminate\Http\Request();
                 $request->replace($parameters);
@@ -1169,7 +1270,7 @@ class BidderController extends Controller
                 "project_bid_id" => $id
               ]);
 
-              $extend = $APP->extendSpecificProcess($cluster->plan_id, "post_qualification", date("m/d/Y", strtotime($twg_evaluation->post_qual_end)), "Automatic Extension");
+              $extend = $APP->extendSpecificProcess($cluster->plan_id, "post_qualification", date("m/d/Y", strtotime($twg_evaluation->post_qual_end)), "Project Timeline Adjusted");
               $parameters = ["plan_id" => $cluster->plan_id, "post_qualification_date" => date("m/d/Y", strtotime($twg_evaluation->post_qual_end)), "bypass" => true];
               $request = new \Illuminate\Http\Request();
               $request->replace($parameters);
@@ -1244,6 +1345,7 @@ class BidderController extends Controller
 
 
         DB::table('twg_evaluations')->where('project_bid', $cluster->project_bid)->delete();
+        DB::table('pqer')->where('pqer_bidder_id', $cluster->project_bid)->delete();
 
         $project_bidder = ProjectBidder::find($cluster->project_bid);
         $project_bidder->bid_status = "active";
@@ -1276,6 +1378,200 @@ class BidderController extends Controller
 
 
       return redirect()->back()->with('message', 'success');
+    }
+  }
+
+  function downloadPQER($id)
+  {
+    $APP = new APP;
+    $pqer = DB::table('pqer')->where('pqer_bidder_id', $id)->first();
+    if ($pqer === null) {
+      return abort('403', "Unknown Project Bidder");
+    }
+    $project_plan = DB::table('project_bidders')
+      ->select('procacts.*', 'rfq_projects.rfq_id', 'project_plans.*', 'project_timelines.post_qualification_start', 'project_timelines.post_qualification_end')
+      ->where([['project_bidders.project_bid', $id], ['rfqs.proposed_bid', '>', 0]])
+      ->join('rfq_projects', 'rfq_projects.rfq_project_id', 'project_bidders.rfq_project_id')
+      ->join('rfqs', 'rfq_projects.rfq_id', 'rfqs.rfq_id')
+      ->join('procacts', 'rfq_projects.procact_id', 'procacts.procact_id')
+      ->join('project_timelines', 'procacts.procact_id', 'project_timelines.procact_id')
+      ->join('project_plans', 'project_plans.latest_procact_id', 'procacts.procact_id')->first();
+
+    if ($project_plan == null) {
+      $project_plan = DB::table('project_bidders')
+        ->select('procacts.*', 'bid_doc_projects.bid_doc_id', 'project_plans.*', 'project_timelines.post_qualification_start', 'project_timelines.post_qualification_end')
+        ->where([['project_bidders.project_bid', $id], ['bid_docs.proposed_bid', '>', 0]])
+        ->join('bid_doc_projects', 'bid_doc_projects.bid_doc_project_id', 'project_bidders.bid_doc_project_id')
+        ->join('bid_docs', 'bid_doc_projects.bid_doc_id', 'bid_docs.bid_doc_id')
+        ->join('procacts', 'bid_doc_projects.procact_id', 'procacts.procact_id')
+        ->join('project_timelines', 'project_timelines.procact_id', 'procacts.procact_id')
+        ->join('project_plans', 'project_plans.latest_procact_id', 'procacts.procact_id')->first();
+    }
+    if ($project_plan === null) {
+      return abort('403', "Unknown Project Bidder");
+    } else {
+      if ($project_plan->plan_cluster_id != null) {
+        $letter = 'A';
+        $total = 0;
+        $title = "";
+
+        $clusters = DB::table('project_plans')
+          ->where([['project_timelines.bid_submission_start', $project_plan->open_bid], ['procacts.plan_cluster_id', $project_plan->plan_cluster_id]])
+          ->join('procacts', 'procacts.plan_id', 'project_plans.plan_id')
+          ->join('project_timelines', 'project_timelines.procact_id', 'procacts.procact_id')
+          ->join('funds', 'project_plans.fund_id', 'funds.fund_id')
+          ->orderBy('procacts.itb_arrangement', 'asc')
+          ->get();
+
+        foreach ($clusters as $cluster) {
+          array_push($ids_array, $cluster->plan_id);
+          $temp = $letter . '. ' . $cluster->project_title . ";";
+          $title = $title . "   " . $temp;
+          $temp_source = $letter . '. ' . $cluster->source . ";";
+          $temp_project_number = $letter . '. ' . $cluster->project_no . ";";
+          // $temp2=$letter.'. '.$cluster->project_cost;
+          $total = $total + $cluster->project_cost;
+          $letter = ++$letter;
+          if ($cluster->special_case_1 == 1) {
+            $title = $cluster->project_title;
+          }
+        }
+      } else {
+        $title = $project_plan->project_title;
+      }
+      // dd("in");
+      $bid = $APP->getBid($id);
+      $rank = getRank($project_plan->procact_id, $id);
+      $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(public_path() . '\\' . "excel_templates/pqer2.xlsx");
+      if ($bid->twg_evaluation_status === "responsive") {
+        // $sheetIndex = $spreadsheet->getIndex($spreadsheet->setActiveSheetIndexByName('non-responsive'));
+        // $spreadsheet->removeSheetByIndex($sheetIndex);
+        $worksheet = $spreadsheet->setActiveSheetIndexByName("responsive");
+      } else {
+        // $sheetIndex = $spreadsheet->getIndex($spreadsheet->setActiveSheetIndexByName('responsive'));
+        // $spreadsheet->removeSheetByIndex($sheetIndex);
+        $worksheet = $spreadsheet->setActiveSheetIndexByName("non-responsive");
+      }
+      $worksheet->getCell('A5')->setValue(strtoupper(strtolower($title)));
+      $worksheet->getCell('E10')->setValue(strtoupper(strtolower($bid->business_name)));
+      $worksheet->getCell('E11')->setValue(strtoupper(strtolower($rank)));
+      $worksheet->getCell('E12')->setValue($bid->final_minimum_cost);
+      $worksheet->getCell('E13')->setValue(date("F d,Y", strtotime($bid->post_qual_start)) . '-' . date("F d,Y", strtotime($bid->post_qual_end)));
+      $worksheet->getCell('G16')->setValue($pqer->philgeps);
+      if (strpos($pqer->ongoing_projects, "o ongoing") != false) {
+        $worksheet->mergeCells("F17:G17");
+      } else {
+        $worksheet->getCell('G17')->setValue("No negative slippages based on verification ");
+      }
+      $worksheet->getCell('F17')->setValue($pqer->ongoing_projects);
+      if (strpos($pqer->slcc, "has no") != false) {
+        $worksheet->mergeCells("F18:G18");
+      } else {
+        $worksheet->getCell('G18')->setValue("Complied");
+      }
+
+      if ($pqer->spcab != "Not Applicable") {
+        $worksheet->mergeCells("F19:G19");
+      } else {
+      }
+
+      if ($pqer->orgchart != "Complied") {
+        $worksheet->mergeCells("F25:G25");
+        $worksheet->getCell('F25')->setValue($pqer->orgchart);
+      } else {
+        $worksheet->getCell('G25')->setValue($pqer->orgchart);
+      }
+      if ($pqer->key_personnel != "Complied") {
+        $worksheet->mergeCells("F26:G26");
+        $worksheet->getCell('F26')->setValue($pqer->key_personnel);
+      } else {
+        $worksheet->getCell('G26')->setValue($pqer->key_personnel);
+      }
+      if ($pqer->major_equipment != "Complied") {
+        $worksheet->mergeCells("F27:G27");
+        $worksheet->getCell('F27')->setValue($pqer->major_equipment);
+      } else {
+        $worksheet->getCell('G27')->setValue($pqer->major_equipment);
+      }
+      if ($pqer->oss != "Complied") {
+        $worksheet->mergeCells("F28:G28");
+        $worksheet->getCell('F28')->setValue($pqer->oss);
+      } else {
+        $worksheet->getCell('G28')->setValue($pqer->oss);
+      }
+      if ($pqer->jva != "Complied") {
+        $worksheet->mergeCells("F30:G30");
+        $worksheet->getCell('F30')->setValue($pqer->jva);
+      } else {
+        $worksheet->getCell('G30')->setValue($pqer->jva);
+      }
+      $worksheet->getCell('F18')->setValue($pqer->slcc);
+      $worksheet->getCell('G19')->setValue($pqer->spcab);
+      $worksheet->getCell('F23')->setValue($pqer->bsd);
+      $worksheet->getCell('G29')->setValue($pqer->nfcc);
+      $worksheet->getCell('G32')->setValue($bid->proposed_bid);
+      $worksheet->getCell('G34')->setValue($bid->bid_as_evaluated);
+
+
+
+      if ($pqer->detailed_estimates != "Submitted") {
+        $worksheet->mergeCells("F35:G35");
+        $worksheet->getCell('F35')->setValue($pqer->detailed_estimates);
+      } else {
+        $worksheet->getCell('G35')->setValue($pqer->detailed_estimates);
+      }
+      if ($pqer->cash_flow != "Submitted") {
+        $worksheet->mergeCells("F36:G36");
+        $worksheet->getCell('F36')->setValue($pqer->cash_flow);
+      } else {
+        $worksheet->getCell('G36')->setValue($pqer->cash_flow);
+      }
+      if ($pqer->provincial_permit != "Submitted") {
+        $worksheet->mergeCells("F37:G37");
+        $worksheet->getCell('F37')->setValue($pqer->provincial_permit);
+      } else {
+        $worksheet->getCell('G37')->setValue($pqer->provincial_permit);
+      }
+      if ($pqer->construction_shedule != "Submitted") {
+        $worksheet->mergeCells("F38:G38");
+        $worksheet->getCell('F38')->setValue($pqer->construction_shedule);
+      } else {
+        $worksheet->getCell('G38')->setValue($pqer->construction_shedule);
+      }
+      if ($pqer->man_power != "Submitted") {
+        $worksheet->mergeCells("F39:G39");
+        $worksheet->getCell('F39')->setValue($pqer->man_power);
+      } else {
+        $worksheet->getCell('G39')->setValue($pqer->man_power);
+      }
+      if ($pqer->construction_methods != "Submitted") {
+        $worksheet->mergeCells("F40:G40");
+        $worksheet->getCell('F40')->setValue($pqer->construction_methods);
+      } else {
+        $worksheet->getCell('G40')->setValue($pqer->construction_methods);
+      }
+      if ($pqer->eus != "Submitted") {
+        $worksheet->mergeCells("F41:G41");
+        $worksheet->getCell('F41')->setValue($pqer->eus);
+      } else {
+        $worksheet->getCell('G41')->setValue($pqer->eus);
+      }
+      if ($pqer->chsp != "Submitted") {
+        $worksheet->mergeCells("F42:G42");
+        $worksheet->getCell('F42')->setValue($pqer->chsp);
+      } else {
+        $worksheet->getCell('G42')->setValue($pqer->chsp);
+      }
+      if ($pqer->pert_cpm != "Submitted") {
+        $worksheet->mergeCells("F43:G43");
+        $worksheet->getCell('F43')->setValue($pqer->pert_cpm);
+      } else {
+        $worksheet->getCell('G43')->setValue($pqer->pert_cpm);
+      }
+
+      $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+      $writer->save(public_path() . '\\' . "excel_templates/" . $project_plan->project_no . ".xlsx");
+      return  response()->download(public_path() . '\\' . "excel_templates/"  . $project_plan->project_no . ".xlsx")->deleteFileAfterSend(true);
     }
   }
 

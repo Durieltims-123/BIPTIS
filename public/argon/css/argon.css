@@ -21582,7 +21582,7 @@ textarea[resize='horizontal']
 }
 .navbar-vertical.navbar-expand-xs .navbar-nav .nav-link
 {
-    padding: .675rem 1.5rem;
+   padding: .675rem 0.85rem;
 }
 .navbar-vertical.navbar-expand-xs .navbar-nav > .nav-item
 {
@@ -21700,7 +21700,7 @@ textarea[resize='horizontal']
     }
     .navbar-vertical.navbar-expand-sm .navbar-nav .nav-link
     {
-        padding: .675rem 1.5rem;
+       padding: .675rem 0.85rem;
     }
     .navbar-vertical.navbar-expand-sm .navbar-nav > .nav-item
     {
@@ -21819,7 +21819,7 @@ textarea[resize='horizontal']
     }
     .navbar-vertical.navbar-expand-md .navbar-nav .nav-link
     {
-        padding: .675rem 1.5rem;
+       padding: .675rem 0.85rem;
     }
     .navbar-vertical.navbar-expand-md .navbar-nav > .nav-item
     {
@@ -21938,7 +21938,7 @@ textarea[resize='horizontal']
     }
     .navbar-vertical.navbar-expand-lg .navbar-nav .nav-link
     {
-        padding: .675rem 1.5rem;
+       padding: .675rem 0.85rem;
     }
     .navbar-vertical.navbar-expand-lg .navbar-nav > .nav-item
     {
@@ -22057,7 +22057,7 @@ textarea[resize='horizontal']
     }
     .navbar-vertical.navbar-expand-xl .navbar-nav .nav-link
     {
-        padding: .675rem 1.5rem;
+       padding: .675rem 0.85rem;
     }
     .navbar-vertical.navbar-expand-xl .navbar-nav > .nav-item
     {

@@ -208,118 +208,118 @@ var Charts = (function() {
 	// Methods
 
 	// Chart.js global options
-	function chartOptions() {
+	// function chartOptions() {
 
-		// Options
-		var options = {
-			defaults: {
-				global: {
-					responsive: true,
-					maintainAspectRatio: false,
-					defaultColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
-					defaultFontColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
-					defaultFontFamily: fonts.base,
-					defaultFontSize: 13,
-					layout: {
-						padding: 0
-					},
-					legend: {
-						display: false,
-						position: 'bottom',
-						labels: {
-							usePointStyle: true,
-							padding: 16
-						}
-					},
-					elements: {
-						point: {
-							radius: 0,
-							backgroundColor: colors.theme['primary']
-						},
-						line: {
-							tension: .4,
-							borderWidth: 4,
-							borderColor: colors.theme['primary'],
-							backgroundColor: colors.transparent,
-							borderCapStyle: 'rounded'
-						},
-						rectangle: {
-							backgroundColor: colors.theme['warning']
-						},
-						arc: {
-							backgroundColor: colors.theme['primary'],
-							borderColor: (mode == 'dark') ? colors.gray[800] : colors.white,
-							borderWidth: 4
-						}
-					},
-					tooltips: {
-						enabled: true,
-						mode: 'index',
-						intersect: false,
-					}
-				},
-				doughnut: {
-					cutoutPercentage: 83,
-					legendCallback: function(chart) {
-						var data = chart.data;
-						var content = '';
+	// 	// Options
+	// 	var options = {
+	// 		defaults: {
+	// 			global: {
+	// 				responsive: true,
+	// 				maintainAspectRatio: false,
+	// 				defaultColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
+	// 				defaultFontColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
+	// 				defaultFontFamily: fonts.base,
+	// 				defaultFontSize: 13,
+	// 				layout: {
+	// 					padding: 0
+	// 				},
+	// 				legend: {
+	// 					display: false,
+	// 					position: 'bottom',
+	// 					labels: {
+	// 						usePointStyle: true,
+	// 						padding: 16
+	// 					}
+	// 				},
+	// 				elements: {
+	// 					point: {
+	// 						radius: 0,
+	// 						backgroundColor: colors.theme['primary']
+	// 					},
+	// 					line: {
+	// 						tension: .4,
+	// 						borderWidth: 4,
+	// 						borderColor: colors.theme['primary'],
+	// 						backgroundColor: colors.transparent,
+	// 						borderCapStyle: 'rounded'
+	// 					},
+	// 					rectangle: {
+	// 						backgroundColor: colors.theme['warning']
+	// 					},
+	// 					arc: {
+	// 						backgroundColor: colors.theme['primary'],
+	// 						borderColor: (mode == 'dark') ? colors.gray[800] : colors.white,
+	// 						borderWidth: 4
+	// 					}
+	// 				},
+	// 				tooltips: {
+	// 					enabled: true,
+	// 					mode: 'index',
+	// 					intersect: false,
+	// 				}
+	// 			},
+	// 			doughnut: {
+	// 				cutoutPercentage: 83,
+	// 				legendCallback: function(chart) {
+	// 					var data = chart.data;
+	// 					var content = '';
 
-						data.labels.forEach(function(label, index) {
-							var bgColor = data.datasets[0].backgroundColor[index];
+	// 					data.labels.forEach(function(label, index) {
+	// 						var bgColor = data.datasets[0].backgroundColor[index];
 
-							content += '<span class="chart-legend-item">';
-							content += '<i class="chart-legend-indicator" style="background-color: ' + bgColor + '"></i>';
-							content += label;
-							content += '</span>';
-						});
+	// 						content += '<span class="chart-legend-item">';
+	// 						content += '<i class="chart-legend-indicator" style="background-color: ' + bgColor + '"></i>';
+	// 						content += label;
+	// 						content += '</span>';
+	// 					});
 
-						return content;
-					}
-				}
-			}
-		}
+	// 					return content;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
 
-		// yAxes
-		Chart.scaleService.updateScaleDefaults('linear', {
-			gridLines: {
-				borderDash: [2],
-				borderDashOffset: [2],
-				color: (mode == 'dark') ? colors.gray[900] : colors.gray[300],
-				drawBorder: false,
-				drawTicks: false,
-				drawOnChartArea: true,
-				zeroLineWidth: 0,
-				zeroLineColor: 'rgba(0,0,0,0)',
-				zeroLineBorderDash: [2],
-				zeroLineBorderDashOffset: [2]
-			},
-			ticks: {
-				beginAtZero: true,
-				padding: 10,
-				callback: function(value) {
-					if (!(value % 10)) {
-						return value
-					}
-				}
-			}
-		});
+	// 	// yAxes
+	// 	Chart.scaleService.updateScaleDefaults('linear', {
+	// 		gridLines: {
+	// 			borderDash: [2],
+	// 			borderDashOffset: [2],
+	// 			color: (mode == 'dark') ? colors.gray[900] : colors.gray[300],
+	// 			drawBorder: false,
+	// 			drawTicks: false,
+	// 			drawOnChartArea: true,
+	// 			zeroLineWidth: 0,
+	// 			zeroLineColor: 'rgba(0,0,0,0)',
+	// 			zeroLineBorderDash: [2],
+	// 			zeroLineBorderDashOffset: [2]
+	// 		},
+	// 		ticks: {
+	// 			beginAtZero: true,
+	// 			padding: 10,
+	// 			callback: function(value) {
+	// 				if (!(value % 10)) {
+	// 					return value
+	// 				}
+	// 			}
+	// 		}
+	// 	});
 
-		// xAxes
-		Chart.scaleService.updateScaleDefaults('category', {
-			gridLines: {
-				drawBorder: false,
-				drawOnChartArea: false,
-				drawTicks: false
-			},
-			ticks: {
-				padding: 20
-			},
-			maxBarThickness: 10
-		});
+	// 	// xAxes
+	// 	Chart.scaleService.updateScaleDefaults('category', {
+	// 		gridLines: {
+	// 			drawBorder: false,
+	// 			drawOnChartArea: false,
+	// 			drawTicks: false
+	// 		},
+	// 		ticks: {
+	// 			padding: 20
+	// 		},
+	// 		maxBarThickness: 10
+	// 	});
 
-		return options;
+	// 	return options;
 
-	}
+	// }
 
 	// Parse global options
 	function parseOptions(parent, options) {
@@ -432,9 +432,9 @@ var Charts = (function() {
 	// Events
 
 	// Parse global options
-	if (window.Chart) {
-		parseOptions(Chart, chartOptions());
-	}
+	// if (window.Chart) {
+	// 	parseOptions(Chart, chartOptions());
+	// }
 
 	// Toggle options
 	$toggle.on({

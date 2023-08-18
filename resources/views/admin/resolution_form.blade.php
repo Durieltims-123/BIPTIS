@@ -39,7 +39,7 @@
 
             <div class="form-group col-xs-12 col-sm-12 col-lg-12 mb-0 d-none" id="reason_container">
               <label for="reason">Reason</label>
-              <input type="text" id="reason" name="reason" class="form-control form-control-sm datepicker" value="{{old('reason')}}" >
+              <input type="text" id="reason" name="reason" class="form-control form-control-sm" value="{{old('reason')}}" >
               <label class="error-msg text-red" >@error('reason'){{$message}}@enderror</label>
             </div>
 
@@ -115,6 +115,10 @@
 
 @push('custom-scripts')
 <script>
+
+  $(".datepicker").datepicker({
+    format: 'mm/dd/yyyy'
+  });
 
 
 // messages
