@@ -90,7 +90,7 @@ class APP extends Model
         }
 
         $month_number = $month_now - 6 + 1;
-        $start_month = date('Y-m-d', strtotime($year . '-' . ($month_number +2). '-01'));
+        $start_month = date('Y-m-d', strtotime($year . '-' . ($month_number + 2) . '-01'));
         $query = $query->where('project_plans.abc_post_date', '<=', $start_month)->where([['child.plan_id', null], ['project_plans.is_old', '<>', true], ['procacts.advertisement', null], ['project_plans.project_bid_id', null], ['project_plans.status', 'pending']]);
       } else {
         $query = $query->where('project_plans.status', $status);
@@ -761,7 +761,8 @@ class APP extends Model
         ->join('procacts', 'procacts.procact_id', 'bid_doc_projects.procact_id')
         ->join('contractors', 'bid_docs.contractor_id', 'contractors.contractor_id')
         ->join('project_bidders', 'project_bidders.bid_doc_project_id', 'bid_doc_projects.bid_doc_project_id')
-        ->leftJoin("twg_evaluations", "twg_evaluations.project_bid", "project_bidders.project_bid")
+        ->leftJoin('twg_evaluations', 'project_bidders.project_bid', 'twg_evaluations.project_bid')
+        ->leftJoin('pqer', 'project_bidders.project_bid', 'pqer.pqer_bidder_id')
         // ->orderBy('final_minimum_cost','asc')
         ->orderBy('minimum_cost', 'asc')
         ->get();
@@ -776,6 +777,7 @@ class APP extends Model
         ->join('contractors', 'bid_docs.contractor_id', 'contractors.contractor_id')
         ->join('project_bidders', 'project_bidders.bid_doc_project_id', 'bid_doc_projects.bid_doc_project_id')
         ->leftJoin('twg_evaluations', 'project_bidders.project_bid', 'twg_evaluations.project_bid')
+        ->leftJoin('pqer', 'project_bidders.project_bid', 'pqer.pqer_bidder_id')
         // ->orderBy('project_bidders.bid_status','asc')
         ->orderBy('bid_docs.bid_as_evaluated', 'asc')
         ->orderBy('bid_docs.date_received', 'asc')
@@ -789,7 +791,8 @@ class APP extends Model
         ->join('procacts', 'procacts.procact_id', 'rfq_projects.procact_id')
         ->join('contractors', 'rfqs.contractor_id', 'contractors.contractor_id')
         ->join('project_bidders', 'project_bidders.rfq_project_id', 'rfq_projects.rfq_project_id')
-        ->leftJoin("twg_evaluations", "twg_evaluations.project_bid", "project_bidders.project_bid")
+        ->leftJoin('twg_evaluations', 'project_bidders.project_bid', 'twg_evaluations.project_bid')
+        ->leftJoin('pqer', 'project_bidders.project_bid', 'pqer.pqer_bidder_id')
         ->orderBy('final_minimum_cost', 'asc')
         ->orderBy('minimum_cost', 'asc')
         ->get();
@@ -804,6 +807,7 @@ class APP extends Model
         ->join('contractors', 'rfqs.contractor_id', 'contractors.contractor_id')
         ->join('project_bidders', 'project_bidders.rfq_project_id', 'rfq_projects.rfq_project_id')
         ->leftJoin('twg_evaluations', 'project_bidders.project_bid', 'twg_evaluations.project_bid')
+        ->leftJoin('pqer', 'project_bidders.project_bid', 'pqer.pqer_bidder_id')
         // ->orderBy('project_bidders.bid_status','asc')
         ->orderBy('rfqs.bid_as_evaluated', 'asc')
         ->orderBy('rfqs.date_received', 'asc')
@@ -816,6 +820,7 @@ class APP extends Model
       $titles = DB::table('project_plans')->select(DB::raw('group_concat(project_title separator " *** ") as titles'))->where([['current_cluster', $latest_procact->current_cluster], ['current_cluster', '<>', null]])->get();
       $title = $titles[0]->titles;
       $title2 = $latest_procact->project_title;
+      $mode = $latest_procact->procact_mode_id;
       $project_cost = DB::table('project_plans')->where('current_cluster', $latest_procact->current_cluster)->sum('project_plans.project_cost');
       $open_bid = $latest_procact->open_bid;
       $project_number = $latest_procact->project_no;
@@ -823,6 +828,7 @@ class APP extends Model
       $title = $latest_procact->project_title;
       $title2 = $latest_procact->project_title;
       $project_cost = $latest_procact->project_cost;
+      $mode = $latest_procact->procact_mode_id;
       $open_bid = $latest_procact->open_bid;
       $project_number = $latest_procact->project_no;
     }
@@ -831,6 +837,13 @@ class APP extends Model
       $timeline = DB::table('project_timelines')->where('procact_id', $latest_procact->latest_procact_id)->first();
       $open_bid = $timeline->bid_submission_start;
     }
+    if ($mode === 1) {
+      $mode = "Bidding";
+    } else if ($mode === 2) {
+      $mode = "SVP";
+    } else {
+      $mode = "Negotiated";
+    }
 
     $data['title'] = $title;
     $data['title2'] = $title2;
@@ -838,6 +851,7 @@ class APP extends Model
     $data['detailed_bids'] = $detailed_bids;
     $data['project_cost'] = $project_cost;
     $data['open_bid'] = $open_bid;
+    $data['mode'] = $mode;
     $data['project_number'] = $project_number;
     return $data;
   }
@@ -1007,6 +1021,7 @@ class APP extends Model
 
     return $project_plans;
   }
+
 
   public function getPostQualDays($procact_id)
   {
@@ -2221,7 +2236,7 @@ class APP extends Model
   {
 
     $project_bid = DB::table('procacts')
-      ->select('rfqs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("RFQ",rfqs.rfq_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_end', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(rfq_projects.detailed_bid_as_read,rfq_projects.detailed_bid_as_evaluated) AS minimum_detailed_cost,twg_evaluations.detailed_bid_as_calculated"), 'project_bidders.project_bid', 'project_bidders.bid_status', 'rfq_projects.rfq_project_id', 'rfq_projects.detailed_bid_as_read', 'rfq_projects.detailed_bid_as_evaluated', 'rfqs.proposed_bid', 'rfqs.bid_as_evaluated', 'rfqs.discount')
+      ->select('rfqs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("RFQ",rfqs.rfq_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_start','twg_evaluations.post_qual_end', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(rfq_projects.detailed_bid_as_read,rfq_projects.detailed_bid_as_evaluated) AS minimum_detailed_cost,twg_evaluations.detailed_bid_as_calculated"), 'project_bidders.project_bid', 'project_bidders.bid_status', 'rfq_projects.rfq_project_id', 'rfq_projects.detailed_bid_as_read', 'rfq_projects.detailed_bid_as_evaluated', 'rfqs.proposed_bid', 'rfqs.bid_as_evaluated', 'rfqs.discount','twg_evaluation_status')
       ->join('project_plans', 'procacts.plan_id', 'project_plans.plan_id')
       ->join('funds', 'project_plans.fund_id', 'funds.fund_id')
       ->join('rfq_projects', 'rfq_projects.procact_id', 'procacts.procact_id')
@@ -2235,7 +2250,7 @@ class APP extends Model
 
     if ($project_bid == null) {
       $project_bid = DB::table('procacts')
-        ->select('bid_docs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("BD",bid_docs.bid_doc_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_end', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(bid_doc_projects.detailed_bid_as_read,bid_doc_projects.detailed_bid_as_evaluated,twg_evaluations.detailed_bid_as_calculated) AS minimum_detailed_cost"), 'project_bidders.bid_status', 'project_bidders.project_bid', 'bid_doc_projects.bid_doc_project_id', 'bid_doc_projects.detailed_bid_as_read', 'bid_doc_projects.detailed_bid_as_evaluated', 'bid_docs.proposed_bid', 'bid_docs.bid_as_evaluated', 'bid_docs.discount')
+        ->select('bid_docs.*', 'procacts.*', 'funds.*', 'contractors.*', DB::raw('CONCAT("BD",bid_docs.bid_doc_id) AS init_id'), 'project_plans.*', 'procacts.plan_cluster_id', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_start', 'twg_evaluations.post_qual_end', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(bid_doc_projects.detailed_bid_as_read,bid_doc_projects.detailed_bid_as_evaluated,twg_evaluations.detailed_bid_as_calculated) AS minimum_detailed_cost"), 'project_bidders.bid_status', 'project_bidders.project_bid', 'bid_doc_projects.bid_doc_project_id', 'bid_doc_projects.detailed_bid_as_read', 'bid_doc_projects.detailed_bid_as_evaluated', 'bid_docs.proposed_bid', 'bid_docs.bid_as_evaluated', 'bid_docs.discount','twg_evaluation_status')
         ->join('project_plans', 'project_plans.plan_id', 'procacts.plan_id')
         ->join('bid_doc_projects', 'bid_doc_projects.procact_id', 'procacts.procact_id')
         ->join('bid_docs', 'bid_docs.bid_doc_id', 'bid_doc_projects.bid_doc_id')

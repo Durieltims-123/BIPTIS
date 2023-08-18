@@ -21,13 +21,13 @@ Route::post('/get_events', 'HomeController@getEvents')->name('get_events');
 
 
 Route::get('/get_summary_report', 'SummaryReportController@generateSummaryReport')->name('get_summary_report');
-Route::post('/get_month_year_report','SummaryReportController@getReportbyMonthYear')->name('get_month_year_report');
-Route::post('/get_unprocured_project','SummaryReportController@getUnprocuredProject')->name('get_unprocured_project');
-Route::post('/get_reg_supp_project','SummaryReportController@getRegSuppProject')->name('get_reg_supp_project');
-Route::post('/get_mode_project','SummaryReportController@getModeProject')->name('get_mode_project');
-Route::post('/get_proj_status_mun','SummaryReportController@getStatusProjMun')->name('get_proj_status_mun');
-Route::get('/progress_report','ProgressReportController@generateProgressReport')->name('progress_report');
-Route::post('/get_project_table','ProgressReportController@getTableData')->name('get_project_table');
+Route::post('/get_month_year_report', 'SummaryReportController@getReportbyMonthYear')->name('get_month_year_report');
+Route::post('/get_unprocured_project', 'SummaryReportController@getUnprocuredProject')->name('get_unprocured_project');
+Route::post('/get_reg_supp_project', 'SummaryReportController@getRegSuppProject')->name('get_reg_supp_project');
+Route::post('/get_mode_project', 'SummaryReportController@getModeProject')->name('get_mode_project');
+Route::post('/get_proj_status_mun', 'SummaryReportController@getStatusProjMun')->name('get_proj_status_mun');
+Route::get('/progress_report', 'ProgressReportController@generateProgressReport')->name('progress_report');
+Route::post('/get_project_table', 'ProgressReportController@getTableData')->name('get_project_table');
 
 
 Route::group(['middleware' => 'admin'], function () {
@@ -624,11 +624,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/limited_regular_app', 'APPController@getLimitedRegularAPP')->name('limited_regular_app');
     Route::get('/limited_supplemental_app', 'APPController@getLimitedSupplementalAPP')->name('limited_supplemental_app');
     Route::get('/twg_project_bidders/{id}', ['uses' => 'BidderController@getTWGBidders', 'as' => 'id']);
+    Route::post('/get_latest_pqer', 'BidderController@getLatestPQER')->name('get_latest_pqer');
     Route::post('/twg_responsive_bidder', 'BidderController@setTWGResponsiveBiddder')->name('twg_responsive_bidder');
     Route::post('/twg_non_responsive_bidder', 'BidderController@setTWGNonResponsiveBiddder')->name('twg_non_responsive_bidder');
     Route::post('/twg_bid_as_calculated_bidder', 'BidderController@setTWGBidAsCalculated')->name('twg_bid_as_calculated_bidder');
     Route::get('/notice_to_submit_post_qualification_docs', 'NoticeController@getNoticeToSubmitPostQualDocs')->name('notice_to_submit_post_qualification_docs');
     Route::post('/filter_project_with_bidders', 'TWGController@filterProjectsWithBidders')->name('filter_project_with_bidders');
+    Route::get('/download_pqer/{id}', ['uses' => 'BidderController@downloadPQER', 'as' => 'id']);
 
     // Request for Extension
     Route::get('/request_for_extension', 'RequestForExtensionController@getRequestForExtensions')->name('request_for_extension');
@@ -719,7 +721,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('resolution_denying_motion/{year}', 'ArchiveController@getResolutionDenyingMotion')->name('resolution_denying_motion/{year}');
         Route::get('resolution_recall_cancelling/{year}', 'ArchiveController@getResolutionRecallCancelling')->name('resolution_recall_cancelling/{year}');
         Route::get('other_resolutions/{year}', 'ArchiveController@getOtherResolutions')->name('other_resolutions/{year}');
-        
+
 
         Route::post('submit_resolution', 'ArchiveController@submitResolution')->name('submit_resolution');
         Route::post('get_archive_resolution_attachments', 'ArchiveController@getResolutionAttachments')->name('get_archive_resolution_attachments');

@@ -566,7 +566,7 @@ $("#date_released").change(function(){
         "_token": "{{ csrf_token() }}",
         "date" : $(this).val(),
         "days" : 3,
-        "date_type" : "Working Days",
+        "date_type" : "Calendar Days",
       },
       'method': "post",
       'success': function(data) {

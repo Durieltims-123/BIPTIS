@@ -1694,7 +1694,7 @@ class ArchiveController extends Controller
     $user_privilege = getUserPrivilege();
 
 
-    return view("archives.resolutions", ['links' => $links, 'user_privilege' => $user_privilege, 'resolution_type' => "RRA", "resolutions" => $resolutions, "title" => $title, "year" => $year]);
+    return view("archives.resolutions", ['links' => $links, 'user_privilege' => $user_privilege, 'resolution_type' => "RRRC", "resolutions" => $resolutions, "title" => $title, "year" => $year]);
   }
 
   public function getResolutionDeclaringFailure(Request $request)

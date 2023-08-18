@@ -68,7 +68,6 @@
                   </div>
 
 
-
                   <div class="form-group col-xs-12 col-sm-12 col-lg-12 mb-0">
                     <label for="performance_bond_remarks">Remarks</label>
                     <input type="text" id="performance_bond_remarks" name="performance_bond_remarks" class="form-control form-control-sm"  value="{{old('performance_bond_remarks')}}">
@@ -202,9 +201,9 @@ $(".monthpicker").datepicker({
 
 // inputs
 var oldInputs='{{ count(session()->getOldInput()) }}';
-if(oldInputs>1){
-  console.log(@json(session()->getOldInput()));
-  if("@error('date_received_by_bac') true @enderror"==' true ' || "@error('request_to_submit_performance_bond') true @enderror"==' true '||"@error('performance_bond_expiration') true @enderror"==' true '){
+if(oldInputs>2){
+  console.log(@json(session()->getOldInput()).length);
+  // if("@error('date_received_by_bac') true @enderror"==' true ' || "@error('request_to_submit_performance_bond') true @enderror"==' true '||"@error('performance_bond_expiration') true @enderror"==' true '){
     if("{{old('contract_id')}}"!="null"||"{{old('contract_id')}}"!=""){
       $("#form_modal_title").html('Edit Performance Bond Date');
     }
@@ -212,7 +211,7 @@ if(oldInputs>1){
       $("#form_modal_title").html('Add Performance Bond Date');
     }
     $("#form_modal").modal('show');
-  }
+  // }
 
 }
 
