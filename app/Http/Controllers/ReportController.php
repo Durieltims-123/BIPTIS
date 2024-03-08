@@ -3561,22 +3561,22 @@ class ReportController extends Controller
             $worksheet->getCell('C' . $row)->setValue("Price Quotations");
             $worksheet->getCell('D' . $row)->setValue("Detailed Estimates");
             $worksheet->getCell('E' . $row)->setValue("Platinum PhilGEPs membership/ Mayor’s Permit & Philgeps Reg. No.");
-            $worksheet->getCell('F' . $row)->setValue("PCAB License");
-            $worksheet->getCell('G' . $row)->setValue("Omnibus Sworn Statement");
-            $worksheet->getCell('H' . $row)->setValue("Mayor's Permit");
-            $worksheet->mergeCells('I' . $row . ':' . 'J' . $row);
-            $worksheet->getCell('I' . $row)->setValue("Latest Income & Business Tax Returns (Electronically Filed)");
+            // $worksheet->getCell('F' . $row)->setValue("PCAB License");
+            $worksheet->getCell('F' . $row)->setValue("Omnibus Sworn Statement");
+            // $worksheet->getCell('H' . $row)->setValue("Mayor's Permit");
+            $worksheet->mergeCells('G' . $row . ':' . 'I' . $row);
+            $worksheet->getCell('G' . $row)->setValue("Latest Income & Business Tax Returns (Electronically Filed)");
 
             $row = $row + 1;
             $bidders = (array)$project_plan->bidders;
             if (count($bidders) === 0) {
-              $worksheet->mergeCells('A' . $row . ':' . 'I' . $row);
+              $worksheet->mergeCells('A' . $row . ':' . 'G' . $row);
               $worksheet->getCell('A' . $row)->setValue("No Contractors");
               $row = $row + 1;
             } else {
               foreach ($bidders as $bidder) {
 
-                $worksheet->mergeCells('I' . $row . ':' . 'J' . $row);
+                $worksheet->mergeCells('G' . $row . ':' . 'I' . $row);
                 $worksheet->mergeCells('A' . $row . ':' . 'B' . $row);
                 $worksheet->getCell('A' . $row)->setValue(strtoupper(strtolower($bidder->business_name)));
                 $currencyFormat = '_(#,##0.00_);_((#,##0.00);_("-"??_);_(@_)';
@@ -3593,8 +3593,8 @@ class ReportController extends Controller
             }
 
             $end_row = $row - 1;
-            $worksheet->getStyle('A' . $start_row . ':J' . $end_row)->applyFromArray($borderedStyleArray);
-            $worksheet->getStyle('A' . $start_row . ':J' . $end_row)->getAlignment()->setWrapText(true);
+            $worksheet->getStyle('A' . $start_row . ':I' . $end_row)->applyFromArray($borderedStyleArray);
+            $worksheet->getStyle('A' . $start_row . ':I' . $end_row)->getAlignment()->setWrapText(true);
 
             $row = $row + 2;
             $item = $item + 1;
@@ -4319,7 +4319,7 @@ class ReportController extends Controller
             $BiddingtemplateProcessor->setValue('bidding_project_title#' . $item, str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($plan->project_title)))));
             $BiddingtemplateProcessor->setValue('bidding_location#' . $item, strtoupper(strtolower($plan->location)));
             $BiddingtemplateProcessor->setValue('bid_abc#' . $item, strtoupper(strtolower($plan->project_cost)));
-            $BiddingtemplateProcessor->setValue('source_of_fund#' . $item, strtoupper(strtolower($plan->source_of_fund)));
+            $BiddingtemplateProcessor->setValue('source_of_fund#' . $item, str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($plan->source_of_fund)))));
             $BiddingtemplateProcessor->setValue('meeting_room#' . $item, $meeting_room);
             $BiddingtemplateProcessor->setValue('page_break#' . $item, '<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
             $no_bidders = false;
@@ -4497,7 +4497,7 @@ class ReportController extends Controller
             $SVPtemplateProcessor->setValue('location#' . $item, $plan->location);
             $SVPtemplateProcessor->setValue('abc#' . $item, $plan->project_cost);
             $SVPtemplateProcessor->setValue('meeting_room#' . $item, $meeting_room);
-            $SVPtemplateProcessor->setValue('source_of_fund#' . $item, $plan->source_of_fund);
+            $SVPtemplateProcessor->setValue('source_of_fund#' . $item, str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($plan->source_of_fund)))));
             $no_bidders = false;
 
             // bidders table
@@ -4658,7 +4658,7 @@ class ReportController extends Controller
             $NegotiatedtemplateProcessor->setValue('item#' . $item, $item);
             $NegotiatedtemplateProcessor->setValue('location#' . $item, $plan->location);
             $NegotiatedtemplateProcessor->setValue('abc#' . $item, $plan->project_cost);
-            $NegotiatedtemplateProcessor->setValue('source_of_fund#' . $item, $plan->source_of_fund);
+            $NegotiatedtemplateProcessor->setValue('source_of_fund#' . $item, str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($plan->source_of_fund)))));
             $NegotiatedtemplateProcessor->setValue('page_break#' . $item, '<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
             $NegotiatedtemplateProcessor->setValue('meeting_room#' . $item, $meeting_room);
 
@@ -4909,7 +4909,7 @@ class ReportController extends Controller
         $temp_plan["project_title"] = str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($title))));
         $temp_plan["project_cost"] = $project_cost;
         $temp_plan["advertisement_start"] = date("F d, Y", strtotime($plan->advertisement_start));
-        $temp_plan["advertisement_end"] = date("F d, Y", strtotime($plan->advertisement_end));
+        $temp_plan["advertisement_end"] = date("F d, Y", strtotime($plan->bid_submission_end));
         if ($plan->procact_mode_id == 1) {
           $temp_plan["mode"] = "Public Bidding";
         } else if ($plan->procact_mode_id == 2) {
@@ -4960,7 +4960,7 @@ class ReportController extends Controller
     $template_processor->cloneBlock("item", count($project_plans), true, true);
     $item = 1;
     foreach ($project_plans as $plan) {
-      $day = date("jS", strtotime($plan['advertisement_end'] . ' +1 day'));
+      $day = date("jS", strtotime($plan['advertisement_end']));
       $month_year = date("F Y", strtotime($plan['advertisement_end']));
       $template_processor->setValue('project_title#' . $item, $plan['project_title']);
       $template_processor->setValue('abc#' . $item, $plan['project_cost']);

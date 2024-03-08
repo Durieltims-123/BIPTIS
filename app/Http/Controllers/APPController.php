@@ -72,9 +72,14 @@ class APPController extends Controller
     return view('admin.specific_app', ['links' => $links, 'user_privilege' => $user_privilege, 'title' => $title, 'project_plans' => $project_plans, 'year' => $year]);
   }
 
-  public function getCompletedProjects()
+  public function getCompletedProjects(Request $request)
   {
-    $year = date('Y');
+    if ($request->project_year != null) {
+      $year = $request->project_year;
+    } else {
+      $year = date('Y');
+    }
+
     $project_type = null;
     $status = 'all_completed';
     $mode = null;
@@ -93,7 +98,7 @@ class APPController extends Controller
     $project_plans = $APP->getAPP($year, $project_type, $status, $mode, $municipality, $fund_category, $type, $account_classification, $month, $pow, $sort, $filter, false);
     $links = getUserLinks();
     $user_privilege = getUserPrivilege();
-    return view('admin.specific_app', ['links' => $links, 'title' => $title, 'project_plans' => $project_plans, 'year' => $year]);
+    return view('admin.completed', ['links' => $links, 'title' => $title, 'project_plans' => $project_plans, 'year' => $year]);
   }
 
   public function getForReviewProjects()
@@ -460,9 +465,9 @@ class APPController extends Controller
     $additional_sapp = false;
     $data = json_encode($data);
     $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-    $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+    $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
     $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-    $funds = DB::table('funds')->orderBy('funds.source')->get();
+    $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
     $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
     $links = getUserLinks();
     $user_privilege = getUserPrivilege();
@@ -476,15 +481,32 @@ class APPController extends Controller
       ->join('project_timelines', 'procacts.procact_id', 'project_timelines.procact_id')
       ->first();
 
-    $bidders = getBiddersDataFirst($plan->latest_procact_id, "active,responsive");
 
-    if ($plan->is_old === 1) {
-      return abort(403, 'Sorry! You are prohibited to create another SAPP for Projects with SAPP. Please contact your developer for validation.');
-    }
+    $bidders = getBiddersNonTerminated($plan->latest_procact_id, "active,responsive");
+    // if ($plan->is_old === 1) {
+    //   return abort(403, 'Sorry! You are prohibited to create another SAPP for Projects which have already existing SAPP. Please contact your developer for validation.');
+    // }
 
-    if (strtotime($plan->bid_submission_start) > strtotime(Date('Y-m-d'))) {
-      return abort(403, 'Sorry! You are prohibited to create another SAPP for Projects with Future Scheduled Opening. Please contact your developer for validation.');
-    }
+    // check resolution declaring failure
+
+    // if ($plan->open_bid != null) {
+    //   $resolution = DB::table('resolutions')->where([['resolutions.type', "RDF"], ['resolution_projects.procact_id', $plan->procact_id]])
+    //     ->join('resolution_projects', 'resolution_projects.resolution_id', 'resolutions.resolution_id')->count();
+    //   if ($resolution === 0) {
+    //     return abort(403, 'Sorry! You are prohibited to create another SAPP for Projects without Resolution Declaring Failure. Please contact your developer for validation.');
+    //   }
+    // }
+
+    $no_bidders = DB::table('project_plans')
+      ->where([['project_plans.plan_id', $id]])
+      ->join('procacts', 'procacts.procact_id', 'project_plans.latest_procact_id')
+      ->join('project_timelines', 'procacts.procact_id', 'project_timelines.procact_id')
+      ->first();
+
+
+    // if (strtotime($plan->bid_submission_start) > strtotime(Date('Y-m-d'))) {
+    //   return abort(403, 'Sorry! You are prohibited to create another SAPP for Projects with Future Scheduled Opening. Please contact your developer for validation.');
+    // }
 
     if ($bidders != null) {
       return abort(403, 'Sorry! You are prohibited to create another SAPP for Projects with Active/Responsive Bidder. Please contact your developer for validation.');
@@ -519,9 +541,9 @@ class APPController extends Controller
       $additional_sapp = false;
       $data = json_encode($data);
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $links = getUserLinks();
       return view('admin.add_app', ['links' => $links, 'user_privilege' => $user_privilege, 'title' => $title, 'project_type' => $project_type, 'year' => $year, 'data' => $data, 'municipalities' => $municipalities, 'projtypes' => $projtypes, 'modes' => $modes, 'funds' => $funds, "additional_sapp" => $additional_sapp, 'classifications' => $classifications]);
@@ -531,9 +553,9 @@ class APPController extends Controller
       $project_type = "supplemental";
       $title = "Add Supplemental Plan";
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $data = json_encode($data);
       $links = getUserLinks();
@@ -568,9 +590,9 @@ class APPController extends Controller
       $additional_sapp = false;
       $data = json_encode($data);
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $links = getUserLinks();
       $user_privilege = getUserPrivilege();
@@ -581,9 +603,9 @@ class APPController extends Controller
       $project_type = "supplemental";
       $title = "Adjust Supplemental Plan";
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $data = json_encode($data);
       $links = getUserLinks();
@@ -603,9 +625,9 @@ class APPController extends Controller
     $additional_sapp = false;
     $data = json_encode($data);
     $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-    $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+    $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
     $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-    $funds = DB::table('funds')->orderBy('funds.source')->get();
+    $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
     $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
     $links = getUserLinks();
     return view('admin.add_app', ['links' => $links, 'user_privilege' => $user_privilege, 'title' => $title, 'project_type' => $project_type, 'year' => $year, 'data' => $data, 'municipalities' => $municipalities, 'projtypes' => $projtypes, 'modes' => $modes, 'funds' => $funds, "additional_sapp" => $additional_sapp, 'classifications' => $classifications]);
@@ -652,9 +674,9 @@ class APPController extends Controller
       $project_type = $data[0]->project_type;
       $title = "Edit " . ucwords($data[0]->project_type) . " Plan";
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $data = json_encode($data);
       $additional_sapp = false;
@@ -695,9 +717,9 @@ class APPController extends Controller
       $project_type = $data[0]->project_type;
       $title = "Edit " . ucwords($data[0]->project_type) . " Plan";
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $data = json_encode($data);
       $additional_sapp = false;
@@ -743,9 +765,9 @@ class APPController extends Controller
       $project_type = $data[0]->project_type;
       $title = "Edit " . ucwords($data[0]->project_type) . " Plan";
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $data = json_encode($data);
       $additional_sapp = false;
@@ -785,8 +807,8 @@ class APPController extends Controller
           return abort(403, "Sorry You can't delete this Project! If you think this is an error please contact your system developer!");
         }
         if ($data->parent_id != null) {
-          DB::table('project_plans')->where('plan_id', $data->parent_id)->update([
-            "is_old" => 0
+          $update = DB::table('project_plans')->where('plan_id', $data->parent_id)->update([
+            "is_old" => false
           ]);
         }
         // delete
@@ -818,8 +840,8 @@ class APPController extends Controller
     // validation
     $data = $request->validate([
       "date_added" => "required|before:tomorrow",
-      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y')),
-      "year_funded" => 'required|digits:4|integer|min:' . (date("Y") - 8) . '|max:' . (date("Y")),
+      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y') + 1),
+      "year_funded" => 'required|digits:4|integer|min:' . (date("Y") - 8) . '|max:' . (date("Y") + 1),
       "project_number" => "required",
       "app_number" => "nullable|integer|required_if:app_type,supplemental",
       "project_title" => "required|max:255",
@@ -1075,8 +1097,8 @@ class APPController extends Controller
     // validation
     $data = $request->validate([
       "date_added" => "required|before:tomorrow",
-      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y')),
-      "year_funded" => 'required|digits:4|integer|min:' . (date("Y") - 8) . '|max:' . (date("Y")),
+      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y') + 1),
+      "year_funded" => 'required|digits:4|integer|min:' . (date("Y") - 8) . '|max:' . (date("Y") + 1),
       "project_number" => "required",
       "app_number" => "nullable|integer|required_if:app_type,supplemental",
       "project_title" => "required|max:255",
@@ -1205,8 +1227,8 @@ class APPController extends Controller
     // validation
     $data = $request->validate([
       "date_added" => "required|before:tomorrow",
-      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y')),
-      "year_funded" => 'required|digits:4|integer|min:' . (date("Y") - 8) . '|max:' . (date("Y")),
+      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y') + 1),
+      "year_funded" => 'required|digits:4|integer|min:' . (date("Y") - 8) . '|max:' . (date("Y") + 1),
       "project_number" => "required",
       "app_number" => "nullable|integer|required_if:app_type,supplemental",
       "project_title" => "required|max:255",
@@ -1488,7 +1510,7 @@ class APPController extends Controller
   public function filterApp(Request $request)
   {
     $data = $request->validate([
-      "project_year" => 'digits:4|integer|min:2020|max:' . (date('Y'))
+      "project_year" => 'required|digits:4|integer|min:2020|max:' . (date('Y') + 1),
     ]);
 
     $year = $request->input('project_year');
@@ -1717,6 +1739,9 @@ class APPController extends Controller
       ->leftJoin('resolutions', 'resolution_projects.resolution_id', 'resolutions.resolution_id')
       ->leftJoin('project_plans as childproject', 'project_plans.plan_id', 'childproject.parent_id');
 
+
+
+
     if ($project_plan->mode_id == 1) {
       $project_details = $project_details->leftJoin('bid_doc_projects', 'project_bidders.bid_doc_project_id', 'bid_doc_projects.bid_doc_project_id')
         ->leftJoin('bid_docs', 'bid_docs.bid_doc_id', 'bid_doc_projects.bid_doc_id')
@@ -1727,6 +1752,7 @@ class APPController extends Controller
         ->leftJoin('contractors', 'rfqs.contractor_id', 'contractors.contractor_id')->first();
     } else {
     }
+    
 
     $project_timelines = DB::table('project_plans')
       ->where('project_plans.plan_id', $id)
@@ -1768,9 +1794,9 @@ class APPController extends Controller
       $project_type = $data[0]->project_type;
       $title = "Create SAPP " . ucwords($data[0]->project_type) . " Plan";
       $municipalities = DB::table('municipalities')->orderBy('municipalities.municipality_name')->get();
-      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->get();
+      $projtypes = DB::table('projtypes')->orderBy('projtypes.type')->where('status', 'active')->get();
       $modes = DB::table('procurement_modes')->orderBy('procurement_modes.mode')->get();
-      $funds = DB::table('funds')->orderBy('funds.source')->get();
+      $funds = DB::table('funds')->orderBy('funds.source')->where('status', 'active')->get();
       $classifications = DB::table('account_classifications')->orderBy('account_classifications.classification')->get();
       $data = json_encode($data);
       $links = getUserLinks();
@@ -1782,7 +1808,7 @@ class APPController extends Controller
   public function downloadApp(Request $request)
   {
     $data = $request->validate([
-      "project_year" => 'digits:4|integer|min:2020|max:' . (date('Y'))
+      "project_year" => 'digits:4|integer|min:2020|max:' . (date('Y') + 1)
     ]);
 
     $governor = DB::table('governors')->orderBy('governor_id', 'desc')->first();

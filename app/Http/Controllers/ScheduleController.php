@@ -93,14 +93,23 @@ class ScheduleController extends Controller
 
 
     $month = date('Y-m-d', strtotime('-6 months', strtotime(date('Y-m', strtotime($request->input('sub-of-bid-start'))) . '-01')));
-
     foreach ($app_opening as $data) {
       if ($month > strtotime($data->sub_open_date)) {
         $specific_message = "Sorry! You cannot add schedule. The App Planned Opening date is not the same quarter as the selected opening date. Project/s needs Supplemental APP.";
         $message = "edit_error";
         return redirect()->back()->with('message', $message)->with('specific_message', $specific_message);
       }
+
+      // if ($request->input('sub-of-bid-start') != null) {
+      //   $opening = date("Y-m-d", strtotime($request->input('sub-of-bid-start')));
+      //   //   if ($opening > strtotime($data->sub_open_date)) {
+      //   //     $specific_message = "Sorry! You cannot add schedule. The Scheduled Opening date is prior to the APP/SAPP opening date. Project/s needs Supplemental APP.";
+      //   //     $message = "edit_error";
+      //   //     return redirect()->back()->with('message', $message)->with('specific_message', $specific_message);
+      //   //   }
+      // }
     }
+
 
     $timeline_status = DB::table('project_timelines')->select("project_timelines.timeline_status")->whereIn('procacts.plan_id', $plan_ids_array)
       ->where('project_activity_status.main_status', 'pending')

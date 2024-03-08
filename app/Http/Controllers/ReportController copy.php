@@ -4688,7 +4688,7 @@ class ReportController extends Controller
 
         $temp_plan["number"] = $count;
         $temp_plan["location"] = $plan->municipality_name;
-        dd(str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($title)))));
+        // dd(str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($title)))));
         $temp_plan["project_title"] = str_replace("&amp;AMP;", "&amp;", htmlspecialchars(strtoupper(strtolower($title))));
         $temp_plan["project_cost"] = $project_cost;
         $temp_plan["advertisement_start"] = date("F d, Y", strtotime($plan->advertisement_start));

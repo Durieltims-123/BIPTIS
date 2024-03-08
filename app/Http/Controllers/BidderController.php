@@ -702,6 +702,7 @@ class BidderController extends Controller
                 'created_at'  => now(),
                 'updated_at' => now()
               ]);
+              DB::table('pqer')->where('pqer_bidder_id', $cluster->project_bid)->delete();
               DB::table("pqer")->insert([
                 "pqer_bidder_id" => $cluster->project_bid,
                 "contractor_id" => $request->contractor_id,
@@ -874,7 +875,7 @@ class BidderController extends Controller
 
                 ]);
               }
-
+              DB::table('pqer')->where('pqer_bidder_id', $cluster->project_bid)->delete();
               DB::table("pqer")->insert([
                 "pqer_bidder_id" => $cluster->project_bid,
                 "contractor_id" => $request->contractor_id,
@@ -1384,6 +1385,7 @@ class BidderController extends Controller
   function downloadPQER($id)
   {
     $APP = new APP;
+    $ids_array = [];
     $pqer = DB::table('pqer')->where('pqer_bidder_id', $id)->first();
     if ($pqer === null) {
       return abort('403', "Unknown Project Bidder");
@@ -1441,7 +1443,7 @@ class BidderController extends Controller
       }
       // dd("in");
       $bid = $APP->getBid($id);
-      $rank = getRank($project_plan->procact_id, $id);
+      $rank = getBidRank($project_plan->procact_id, $id);
       $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(public_path() . '\\' . "excel_templates/pqer2.xlsx");
       if ($bid->twg_evaluation_status === "responsive") {
         // $sheetIndex = $spreadsheet->getIndex($spreadsheet->setActiveSheetIndexByName('non-responsive'));

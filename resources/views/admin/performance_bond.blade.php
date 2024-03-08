@@ -201,10 +201,9 @@ $(".monthpicker").datepicker({
 
 // inputs
 var oldInputs='{{ count(session()->getOldInput()) }}';
-if(oldInputs>2){
-  console.log(@json(session()->getOldInput()).length);
+if(oldInputs>4){
   // if("@error('date_received_by_bac') true @enderror"==' true ' || "@error('request_to_submit_performance_bond') true @enderror"==' true '||"@error('performance_bond_expiration') true @enderror"==' true '){
-    if("{{old('contract_id')}}"!="null"||"{{old('contract_id')}}"!=""){
+    if(("{{old('contract_id')}}"!="null"||"{{old('contract_id')}}"!="")&& "{{old('noa_date_received')}}"!=""){
       $("#form_modal_title").html('Edit Performance Bond Date');
     }
     else{

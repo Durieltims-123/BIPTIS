@@ -49,9 +49,254 @@ use Illuminate\Database\Eloquent\Model;
 use App\Http\Controllers\ProcurementController;
 use App\ArchiveTransmittal;
 use App\ArchiveTransmittalAttachments;
+use App\ArchivePPMP;
+use App\ArchivePPMPAttachments;
+use App\ArchiveNoticeOfCancellation;
+use App\ArchiveNoticeOfCancellationAttachments;
 
 class ArchiveController extends Controller
 {
+
+
+  // PPMP Archive Settings
+  public function getPPMP()
+  {
+    $year = date('Y');
+    $ppmp_type = 'regular';
+    $archive_ppmps = ArchivePPMP::where([['ppmp_year', $year], ['ppmp_type', $ppmp_type]])
+      ->leftJoin('fund_category', 'archive_ppmp.fund_category_id', 'fund_category.fund_category_id')
+      ->get();
+    $fund_categories = DB::table('fund_category')->orderBy('title', 'asc')->get();
+    $links = getUserLinks();
+    $user_privilege = getUserPrivilege();
+
+    return view('archives.ppmp', ['links' => $links, 'user_privilege' => $user_privilege, 'fund_categories' => $fund_categories, 'archive_ppmps' => $archive_ppmps, 'year' => $year, "title" => "Archive PPMP", "ppmp_type" => $ppmp_type]);
+  }
+
+  public function getSPPMP()
+  {
+    $year = date('Y');
+    $ppmp_type = 'supplemental';
+    $archive_ppmps = ArchivePPMP::where([['ppmp_year', $year], ['ppmp_type', $ppmp_type]])
+      ->leftJoin('fund_category', 'archive_ppmp.fund_category_id', 'fund_category.fund_category_id')
+      ->get();
+    $fund_categories = DB::table('fund_category')->orderBy('title', 'asc')->get();
+    $links = getUserLinks();
+    $user_privilege = getUserPrivilege();
+
+    return view('archives.ppmp', ['links' => $links, 'user_privilege' => $user_privilege, 'fund_categories' => $fund_categories, 'archive_ppmps' => $archive_ppmps, 'year' => $year, "title" => "Archive Supplemental PPMP", "ppmp_type" => $ppmp_type]);
+  }
+
+  public function filterArchivePPMP(Request $request)
+  {
+    $data = $request->validate([
+      "ppmp_year" => "required",
+    ]);
+
+    $year = $request->ppmp_year;
+    $ppmp_type = $request->ppmp_type;
+    $whereArray = [['ppmp_year', $year], ['ppmp_type', $ppmp_type]];
+
+
+    if ($request->ppmp_group != null) {
+      array_push($whereArray, ['ppmp_no', $request->ppmp_group]);
+    }
+    if ($request->fund_category != null) {
+      array_push($whereArray, ['archive_ppmp.fund_category_id', $request->fund_category]);
+    }
+
+    $archive_ppmps = ArchivePPMP::where($whereArray)
+      ->leftJoin('fund_category', 'archive_ppmp.fund_category_id', 'fund_category.fund_category_id')
+      ->get();
+
+    return back()->withInput()->with('archive_ppmps', $archive_ppmps);
+  }
+
+  public function submitPPMP(Request $request)
+  {
+
+
+    $data = $request->validate([
+      "year" => "required",
+      "source_of_fund" => "required_if:ppmp_type,===,regular",
+      "sppmp_number" => "required_if:ppmp_type,===,supplemental",
+    ]);
+
+    $id = $request->id;
+    $message = "success";
+    $attachments = $request->file('attachments');
+    if ($request->ppmp_type === "supplemental") {
+      $folder = "SPPMP";
+      $naming = $request->year . "SPPMP" . $request->sppmp_number;
+    } else {
+      $fund_category = DB::table('fund_category')->where('fund_category_id', $request->source_of_fund)->first();
+      $folder = "PPMP";
+      $naming = $request->year . $fund_category->title;
+    }
+
+    if ($id === null) {
+      $ppmp = ArchivePPMP::firstOrCreate([
+        "ppmp_year" => $request->year,
+        "ppmp_no" => $request->sppmp_number,
+        "ppmp_type" => $request->ppmp_type,
+        "fund_category_id" => $request->source_of_fund,
+        "remarks" => $request->remarks
+      ]);
+    } else {
+      $ppmp = ArchivePPMP::find($id);
+      $ppmp->ppmp_year = $request->year;
+      $ppmp->ppmp_no = $request->sppmp_number;
+      $ppmp->ppmp_type = $request->ppmp_type;
+      $ppmp->fund_category_id = $request->source_of_fund;
+      $ppmp->remarks = $request->remarks;
+      $ppmp->save();
+    }
+
+
+
+    if (isset($attachments)) {
+      // save attachments to folder and database
+      foreach ($attachments as $attachment) {
+        $filename = $attachment->getClientOriginalName();
+        $pieces = explode(".", $filename);
+        $last_index = count($pieces) - 1;
+        $new_name = $naming . "-" . uniqid() . ".pdf";
+        if ($pieces[$last_index] === "pdf") {
+
+          Storage::disk('drive-d')->putFileAs('Archives/' . $folder . '/', $attachment, $new_name);
+
+          ArchivePPMPAttachments::create([
+            "archive_ppmp_id" => $ppmp->id,
+            "attachment_name" => $new_name,
+          ]);
+        }
+      }
+    } else {
+      $existing_attachments = ArchivePPMPAttachments::where("archive_ppmp_id", $ppmp->id)->count();
+      if ($existing_attachments === 0) {
+        $message = "missing_attachment";
+        $ppmp->delete();
+      }
+    }
+    if ($message === "success") {
+      return back()->with("message", $message);
+    } else {
+      return back()->withInput()->with("message", $message);
+    }
+  }
+
+  public function getPPMPAttachments(Request $request)
+  {
+    $attachments = ArchivePPMPAttachments::where('archive_ppmp_id', $request->id)->orderBy('created_at', 'asc')->get();
+    return $attachments;
+  }
+
+  public function deletePPMPAttachment(Request $request)
+  {
+    $data = ArchivePPMPAttachments::where('id', $request->id)->first();
+    $ppmp = ArchivePPMP::find($data->archive_ppmp_id);
+    if ($ppmp->ppmp_type === "supplemental") {
+      $folder = "SPPMP";
+    } else {
+      $folder = "PPMP";
+    }
+
+    if ($data != null) {
+      Storage::disk('drive-d')->delete('Archives/' . $folder . '/' . $data->attachment_name);
+      ArchivePPMPAttachments::where('attachment_name', $data->attachment_name)->delete();
+    }
+
+    $existing_attachments = ArchivePPMPAttachments::where('archive_ppmp_id', $data->archive_ppmp_id)->count();
+
+    if ($existing_attachments === 0) {
+      $ppmp->delete();
+      return "reload";
+    }
+
+    return "success";
+  }
+
+  public function viewPPMPAttachment(Request $request)
+  {
+
+    $data = ArchivePPMPAttachments::where('id', $request->id)->first();
+    $ppmp = ArchivePPMP::find($data->archive_ppmp_id);
+    if ($ppmp->ppmp_type === "supplemental") {
+      $folder = "SPPMP";
+    } else {
+      $folder = "PPMP";
+    }
+
+    if ($data != null) {
+      return  response()->file(Storage::disk('drive-d')->path('Archives/' . $folder . '/' . $data->attachment_name));
+    } else {
+      return abort(404);
+    }
+  }
+
+  public function viewPPMPAttachments(Request $request)
+  {
+    $ppmp = ArchivePPMP::find($request->id);
+    if ($ppmp->ppmp_type === "supplemental") {
+      $folder = "SPPMP";
+    } else {
+      $folder = "PPMP";
+    }
+
+    if ($ppmp != null) {
+      // Merge PDFS and show
+      $initial = 0;
+      $pdfMerger = PDFMerger::init();
+      $name = "archive_ppmps-" . $request->id;
+      $attachments = ArchivePPMPAttachments::where("archive_ppmp_id", $request->id)->get();
+
+      if (count($attachments) > 0) {
+        foreach ($attachments as $attachment) {
+          $pdfMerger->addPDF(Storage::disk('drive-d')->path('Archives/' . $folder . '/' . $attachment->attachment_name), 'all');
+        }
+        $pdfMerger->merge();
+        $pdfMerger->save(storage_path("app/public/temp_archive/" . $name . ".pdf"));
+        return  response()->file(storage_path("app/public/temp_archive/" . $name . ".pdf"))->deleteFileAfterSend(true);
+      } else {
+        abort(403, "No attached files");
+      }
+    } else {
+      abort(404);
+    }
+  }
+
+
+
+
+  public function deletePPMPAttachments(Request $request)
+  {
+    $data = ArchivePPMP::find($request->id);
+    if ($data != null) {
+      if ($data->ppmp_type === "supplemental") {
+        $folder = "SPPMP";
+      } else {
+        $folder = "PPMP";
+      }
+
+      $attachments = ArchivePPMPAttachments::where("archive_ppmp_id", $request->id)->get();
+      foreach ($attachments as $value) {
+        Storage::disk('drive-d')->delete('Archives/' . $folder . '/' . $value->attachment_name);
+      }
+      ArchivePPMPAttachments::where("archive_ppmp_id", $request->id)->delete();
+      $data->delete();
+      return "success";
+    } else {
+      return abort(404);
+    }
+  }
+
+
+
+
+
+
+
+
 
   // APP Archive Settings
   public function getRegularAPP()
@@ -870,6 +1115,208 @@ class ArchiveController extends Controller
   }
 
   // end notice of meeting
+
+
+  // NoticeOfCancellations
+  public function getNoticeOfCancellation(Request $request)
+  {
+    if (isset($request->year)) {
+      $year = $request->year;
+    } else {
+      $year = date('Y');
+    }
+
+
+    $data = ArchiveNoticeOfCancellation::where([['date', 'like', $year . '%']])
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+    $links = getUserLinks();
+    $user_privilege = getUserPrivilege();
+
+    return view('archives.notice_of_cancellation',
+      ['links' => $links, 'user_privilege' => $user_privilege, 'year' => $year, "title" => "Notice Of Cancellation", "data" => $data]
+    );
+  }
+
+  public function filterNoticeOfCancellation(Request $request)
+  {
+
+    $data = $request->validate([
+      "year" => 'required|digits:4|integer|min:2020|max:' . (date('Y'))
+    ]);
+
+    if (isset($request->year)) {
+      $year = $request->year;
+    } else {
+      $year = date('Y');
+    }
+
+    $data = ArchiveNoticeOfCancellation::where([['date_opened', 'like', $year . '%'], ['deleted', '<>', '1']])
+    ->select('archive_minutes.*',
+      'users.name'
+    )
+    ->join('users', 'archive_minutes.updated_by', 'users.id')
+    ->get();
+
+    return back()->with('data', $data)->withInput();
+  }
+
+  public function submitNoticeOfCancellation(Request $request)
+  {
+    $data = $request->validate([
+      "date_opened" => "required|before:tomorrow"
+    ]);
+
+    $date_opened = Date('Y-m-d',
+      strtotime($request->date_opened)
+    );
+    $id = $request->id;
+    $message = "success";
+    $attachments = $request->file('attachments');
+    $meeting = Meeting::where('meeting_date', $date_opened)->count();
+    if ($meeting === 0) {
+      $message = "opening_error";
+    } else {
+
+      if ($id === null) {
+        $duplicate = ArchiveNoticeOfCancellation::where([['date_opened', $date_opened], ['deleted', '<>', '1']])->count();
+
+        if ($duplicate === 0) {
+
+          if (isset($attachments)) {
+            $archive_minute = ArchiveNoticeOfCancellation::create([
+              "date_opened" => $date_opened,
+              "updated_by" => Auth::user()->id,
+              "deleted" => 0,
+            ]);
+
+            // save attachments to folder and database
+            foreach ($attachments as $attachment) {
+              $filename = $attachment->getClientOriginalName();
+              $pieces = explode(".", $filename);
+              $last_index = count($pieces) - 1;
+              $new_name = $date_opened . "minute-" . uniqid() . ".pdf";
+              if ($pieces[$last_index] === "pdf") {
+                Storage::disk('drive-d')->putFileAs('Archives/NoticeOfCancellations', $attachment, $new_name);
+                ArchiveNoticeOfCancellationAttachments::create([
+                  "archive_minute_id" => $archive_minute->id,
+                  "attachment_name" => $new_name,
+                ]);
+              }
+            }
+          } else {
+            $message = "missing_attachment";
+          }
+        } else {
+          $message = "duplicate_error";
+        }
+      } else {
+        $archive_minute = ArchiveNoticeOfCancellation::find($id);
+
+        $archive_minute->date_opened = $date_opened;
+        $archive_minute->updated_by = Auth::user()->id;
+        $archive_minute->save();
+
+        if (isset($attachments)) {
+          // save attachments to folder and database
+          foreach ($attachments as $attachment) {
+            $filename = $attachment->getClientOriginalName();
+            $pieces = explode(".",
+              $filename
+            );
+            $last_index = count($pieces) - 1;
+            $new_name = $date_opened . "minute-" . uniqid() . ".pdf";
+            if ($pieces[$last_index] === "pdf") {
+              Storage::disk('drive-d')->putFileAs('Archives/NoticeOfCancellations', $attachment, $new_name);
+
+              ArchiveNoticeOfCancellationAttachments::create([
+                "archive_minute_id" => $archive_minute->id,
+                "attachment_name" => $new_name,
+              ]);
+            }
+          }
+        } else {
+          $existing_attachments = ArchiveNoticeOfCancellationAttachments::where("archive_minute_id", $archive_minute->id)->count();
+          if ($existing_attachments === 0
+          ) {
+            $message = "missing_attachment";
+          }
+        }
+      }
+    }
+    if ($message === "success") {
+      return back()->with("message", $message);
+    } else {
+      return back()->withInput()->with("message", $message);
+    }
+  }
+
+  public function getArchiveNoticeOfCancellationAttachments(Request $request)
+  {
+    $attachments = ArchiveNoticeOfCancellationAttachments::where('archive_minute_id', $request->archive_minute_id)->orderBy('created_at', 'asc')->get();
+    return $attachments;
+  }
+
+  public function viewNoticeOfCancellationAttachment(Request $request)
+  {
+    $data = ArchiveNoticeOfCancellationAttachments::where('id', $request->id)->first();
+    if ($data != null) {
+      return  response()->file(Storage::disk('drive-d')->path('Archives/NoticeOfCancellations/' . $data->attachment_name));
+    } else {
+      return abort(404);
+    }
+  }
+
+  public function viewNoticeOfCancellationAttachments(Request $request)
+  {
+    $archive_minute = ArchiveNoticeOfCancellation::find($request->id);
+    if ($archive_minute != null) {
+      // Merge PDFS and show
+      $initial = 0;
+      $pdfMerger = PDFMerger::init();
+      $name = "Archives_minutes-" . $request->id;
+      $attachments = ArchiveNoticeOfCancellationAttachments::where("archive_minute_id", $request->id)->get();
+
+      if (count($attachments) > 0) {
+        foreach ($attachments as $attachment) {
+          $pdfMerger->addPDF(Storage::disk('drive-d')->path('Archives/minutes/' . $attachment->attachment_name), 'all');
+        }
+        $pdfMerger->merge();
+        $pdfMerger->save(storage_path("app/public/temp_archive/" . $name . ".pdf"));
+        return  response()->file(storage_path("app/public/temp_archive/" . $name . ".pdf"))->deleteFileAfterSend(true);
+      } else {
+        abort(403,
+          "No attached files"
+        );
+      }
+    } else {
+      abort(404);
+    }
+  }
+
+  public function deleteNoticeOfCancellationAttachment(Request $request)
+  {
+    $data = ArchiveNoticeOfCancellationAttachments::where('id', $request->id)->first();
+    if ($data != null) {
+      Storage::disk('drive-d')->delete('Archives/NoticeOfCancellations/' . $data->attachment_name);
+      $data = ArchiveNoticeOfCancellationAttachments::where('id', $request->id)->delete();
+    }
+    return "success";
+  }
+
+  public function deleteNoticeOfCancellation(Request $request)
+  {
+
+    $archive_minute = ArchiveNoticeOfCancellation::find($request->id);
+    if ($archive_minute != null) {
+      $archive_minute->deleted = 1;
+      $archive_minute->deleted_at = now();
+      $archive_minute->deleted_by = Auth::user()->id;
+      $archive_minute->save();
+    }
+    return "success";
+  }
 
   // Minutes of Meeting
   public function getMinuteArchive(Request $request)
@@ -1768,7 +2215,7 @@ class ArchiveController extends Controller
       $resolution = Resolution::create([
         'resolution_date' => date('Y-m-d', strtotime($request->resolution_date)), 'resolution_number' => $request->resolution_number, 'type' => 'OTHERS', 'with_attachment' => 0, 'governor_id' => $governor->governor_id, 'resolution_remarks' => $request->remarks
       ]);
-
+      $resolution_attachments = ArchiveResolutionAttachments::where('resolution_id', $resolution->resolution_id)->count();
       if (isset($attachments) === false && $resolution_attachments === 0) {
         $resolution->with_attachment = 0;
         $resolution->save();

@@ -67,7 +67,7 @@ class ResolutionController extends Controller
       return abort("403", "Unknown Resolution");
     }
 
-    
+
     foreach ($resolution_projects as $resolution_project) {
       $project_plans->push($resolution_project);
     }
@@ -686,7 +686,9 @@ class ResolutionController extends Controller
         $message = "duplicate";
       } else {
         $add = DB::table("resolutions")->insert([
+
           "resolution_number" => $request->input("resolution_number"),
+          "twg_report_dates" => $request->input("twg_report_dates"),
           "resolution_date" => date("Y-m-d", strtotime($request->input('resolution_date'))),
           "type" => $request->input("resolution_type"),
           "governor_id" => $governor->governor_id,
@@ -734,6 +736,7 @@ class ResolutionController extends Controller
           ->where("resolution_id", $request->input("resolution_id"))
           ->update([
             "resolution_number" => $request->input("resolution_number"),
+            "twg_report_dates" => $request->input("twg_report_dates"),
             "resolution_date" => date("Y-m-d", strtotime($request->input('resolution_date'))),
             "type" => $request->input("resolution_type"),
             "governor_id" => $governor->governor_id
@@ -837,6 +840,7 @@ class ResolutionController extends Controller
 
         $add = DB::table("resolutions")->insert([
           "resolution_number" => $request->input("resolution_number"),
+          "twg_report_dates" => $request->input("twg_report_dates"),
           "resolution_date" => date("Y-m-d", strtotime($request->input('resolution_date'))),
           "type" => $request->input("resolution_type"),
           "governor_id" => $governor->governor_id,
@@ -1264,6 +1268,7 @@ class ResolutionController extends Controller
     } else {
       $governor = $resolution->name;
       $resolution_date = date("F d,Y", strtotime($resolution->resolution_date));
+      $resolution_date3 = date("dS", strtotime($resolution->resolution_date)) . ' day of ' . date("F Y", strtotime($resolution->resolution_date));
       $date_format = date("jS", strtotime($resolution->resolution_date)) . " day of " . date("F, Y", strtotime($resolution->resolution_date));
       $APP = new APP;
       $bac = DB::table('bids_and_awards_committee')
@@ -1294,19 +1299,15 @@ class ResolutionController extends Controller
         ->where('bac_member.bac_member_type', 'BAC Infrastructure Member')
         ->join('member', 'member.member_id', '=', 'bac_member.member_id')->orderBy('bac_member.bac_member_arrangement', 'asc')->get();
 
-
-
       $bac_members = [];
       array_push($bac_members, ["name" => $bac->bac_chairman_name, "position" => "Chairperson &amp; Presiding Officer"]);
       array_push($bac_members, ["name" => $bac->bac_vice_chairman_name, "position" => "Vice-Chairperson"]);
-      $bac_names = strtoupper(strtolower($bac->bac_chairman_name)) . ", Chairperson &amp; Presiding Officer <w:br/>" . strtoupper(strtolower($bac->bac_vice_chairman_name)) . ", Vice-Chairperson  <w:br/>";
+      $bac_names = strtoupper(strtolower($bac->bac_chairman_name_prefix)) . ", Chairperson &amp; Presiding Officer <w:br/>" . strtoupper(strtolower($bac->bac_vice_chairman_name_prefix)) . ", Vice-Chairperson  <w:br/>";
       foreach ($bac_infra_members as $member) {
         array_push($bac_members, ["name" => $member->member_name, "position" => "Member"]);
         $bac_names = $bac_names . strtoupper(strtolower($member->member_prefix . ' ' . $member->member_name)) . ", Member <w:br/>";
       }
       $member_rows = ceil(count($bac_members) / 2);
-
-
 
       $project_plans = DB::table("resolution_projects")->where("resolution_id", $id)
         ->join('procacts', 'procacts.procact_id', 'resolution_projects.procact_id')
@@ -1474,6 +1475,7 @@ class ResolutionController extends Controller
           $action = " bought and filed their bid documents";
           $bidding_or_svp = "Bidding";
           $winner_with_abv = 'Lowest Calculated Responsive Bid (LCRB)';
+          $winner = 'Lowest Calculated Bid';
           $lcrb_or_lcrpq = 'Lowest Calculated Responsive Bid';
           $bidder_or_invited = 'Bidder';
           $bid_or_quotation = "Bid ";
@@ -1483,6 +1485,7 @@ class ResolutionController extends Controller
           $action = "secured and filed their quotations";
           $bidding_or_svp = "Small Value Procurement";
           $winner_with_abv = 'Lowest Calculated Responsive Price Quotation (LCRPQ)';
+          $winner = 'Lowest Calculated Price Quotation';
           $lcrb_or_lcrpq = 'Lowest Calculated Responsive Price Quotation';
           $bidder_or_invited = 'Name of Interested/Invited Contractor';
           $bid_or_quotation = "Quotation ";
@@ -1492,6 +1495,7 @@ class ResolutionController extends Controller
           $action = "secured and filed their quotations";
           $bidding_or_svp = "Negotiated Procurement";
           $winner_with_abv = 'Lowest Calculated Responsive Price Quotation (LCRPQ)';
+          $winner = 'Lowest Calculated Price Quotation';
           $lcrb_or_lcrpq = 'Lowest Calculated Responsive Price Quotation';
           $bidder_or_invited = 'Name of Interested/Invited Contractor';
           $bid_or_quotation = "Quotation ";
@@ -1510,7 +1514,7 @@ class ResolutionController extends Controller
           $templateProcessor->setValue('project_number#' . $count, $project_numbers[$i]);
           $templateProcessor->setValue('project_cost#' . $count, $project_costs[$i]);
           $templateProcessor->setValue('location#' . $count, $locations[$i]);
-          $templateProcessor->setValue('source#' . $count, $sources[$i]);
+          $templateProcessor->setValue('source#' . $count, htmlspecialchars($sources[$i]));
           $templateProcessor->setValue('duration#' . $count, $duration[$i] . " CD");
           $bidders_data = $bidders_array[$i];
           $templateProcessor->cloneRow('business_name#' . $count, count($bidders_data));
@@ -1583,7 +1587,7 @@ class ResolutionController extends Controller
             } else if ($bidder->bid_status === "non-responsive") {
               $remarks = "Non-responsive";
             } else if ($bidder->bid_status === "active") {
-              $remarks = "Fund has expired: Please Verify Status of Project";
+              $remarks = "";
             } else {
               // $remarks = $bidder_counter . date("S", mktime(0, 0, 0, 0, $bidder_counter, 0)) . " " . $label;
             }
@@ -1597,8 +1601,9 @@ class ResolutionController extends Controller
           }
         }
 
-
+        $templateProcessor->setValue('report_dates', $resolution->twg_report_dates);
         $templateProcessor->setValue('resolution_number', $resolution->resolution_number);
+        $templateProcessor->setValue('title_bid_or_quotation', strtoupper(strtolower($bid_or_quotation)));
         $templateProcessor->setValue('rfq_or_itb', $rfq_or_itb);
         $templateProcessor->setValue('period', date("F j, Y", strtotime($advertisement_start)) . " - " . date("F j, Y", strtotime($advertisement_end)));
         $templateProcessor->setValue('project_num', $projects_opened_count);
@@ -1607,6 +1612,7 @@ class ResolutionController extends Controller
         $templateProcessor->setValue('action', $action);
         $templateProcessor->setValue('date_opened', date("F j, Y", strtotime($date_opened)));
         $templateProcessor->setValue('bidding_or_svp', $bidding_or_svp);
+        $templateProcessor->setValue('winner', $winner);
         $templateProcessor->setValue('winner_with_abv', $winner_with_abv);
         $templateProcessor->setValue('winner_with_abv1', $winner_with_abv);
         $templateProcessor->setValue('lcrb_or_lcrpq', $lcrb_or_lcrpq);
@@ -1619,7 +1625,8 @@ class ResolutionController extends Controller
         }
         $templateProcessor->setValue('num_award', count($titles));
         $templateProcessor->setValue('resolution_date', strtoupper($resolution_date));
-        $templateProcessor->setValue('resolution_date', "");
+        $templateProcessor->setValue('resolution_date2', $resolution_date);
+        $templateProcessor->setValue('resolution_date3', $resolution_date3);
         $templateProcessor->setValue('date_format', $date_format);
         $templateProcessor->setValue('governor', strtoupper($governor));
         $templateProcessor->saveAs($this->getPublicPath() . 'word_results/rrc.docx');
@@ -1871,11 +1878,11 @@ class ResolutionController extends Controller
           foreach ($item_numbers as $key => $item_number) {
             $i = $key + 1;
             $templateProcessor->setValue('item_number#' . $i, $item_number);
-            $templateProcessor->setValue('project_number#' . $i, $project_numbers[$key]);
-            $templateProcessor->setValue('project_title#' . $i, $titles[$key]);
+            $templateProcessor->setValue('project_number#' . $i, str_replace('&', '&amp;', strtoupper(strtolower($project_numbers[$key]))));
+            $templateProcessor->setValue('project_title#' . $i, str_replace('&', '&amp;', strtoupper(strtolower($titles[$key]))));
             $templateProcessor->setValue('location#' . $i, $locations[$key]);
             $templateProcessor->setValue('project_cost#' . $i, $project_costs[$key]);
-            $templateProcessor->setValue('source#' . $i, $sources[$key]);
+            $templateProcessor->setValue('source#' . $i, htmlspecialchars($sources[$key]));
             $templateProcessor->setValue('period#' . $i, $period);
           }
 
@@ -1915,11 +1922,11 @@ class ResolutionController extends Controller
             $templateProcessor->setValue('action#' . $i, $action);
             $templateProcessor->setValue('date_opened#' . $i, $date_opened);
             $templateProcessor->setValue('item_number#' . $i, $item_number);
-            $templateProcessor->setValue('project_number#' . $i, $project_numbers[$key]);
-            $templateProcessor->setValue('project_title#' . $i, $titles[$key]);
+            $templateProcessor->setValue('project_number#' . $i, str_replace('&', '&amp;', strtoupper(strtolower($project_numbers[$key]))));
+            $templateProcessor->setValue('project_title#' . $i, str_replace('&', '&amp;', strtoupper(strtolower($titles[$key]))));
             $templateProcessor->setValue('location#' . $i, $locations[$key]);
             $templateProcessor->setValue('project_cost#' . $i, $project_costs[$key]);
-            $templateProcessor->setValue('source#' . $i, $sources[$key]);
+            $templateProcessor->setValue('source#' . $i, htmlspecialchars($sources[$key]));
             $templateProcessor->setValue('period#' . $i, $period);
             $templateProcessor->cloneRow('business_name#' . $i, count($non_responsive_bidders));
             $templateProcessor->setValue('bidders_count#' . $i, count($non_responsive_bidders));
@@ -2124,6 +2131,8 @@ class ResolutionController extends Controller
         ->join('member as bac_twg_vice_ch', 'bac_twg_vice_ch.member_id', '=', 'bids_and_awards_committee.bac_twg_vice_chairman')
         ->orderBy('bac_id', 'desc')
         ->first();
+
+
 
       $bac_infra_members = DB::table('bac_member')->where('bac_id', $bac->bac_id)
         ->select(DB::raw("CONCAT(member.member_fname,' ',if(member.member_minitial is null ,'',member.member_minitial),' ',member.member_lname) AS member_name"), 'member_prefix')

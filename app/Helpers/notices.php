@@ -607,6 +607,42 @@ function getBiddersDataFirst($procact_id, $status)
   return $bidders;
 }
 
+function getBiddersNonTerminated($procact_id, $status)
+{
+  $bidder_error = false;
+  $status = explode(",", $status);
+  $bidders = DB::table('rfq_projects')
+    ->select(DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_start', 'twg_evaluations.post_qual_end', DB::raw("LEAST(rfqs.bid_as_evaluated,rfqs.proposed_bid,rfqs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(rfq_projects.detailed_bid_as_read,rfq_projects.detailed_bid_as_evaluated) AS minimum_detailed_cost"), 'project_bidders.project_bid', 'rfqs.contractor_id', 'project_bidders.bid_status', 'rfq_projects.rfq_project_id', 'rfq_projects.detailed_bid_as_read', 'rfq_projects.detailed_bid_as_evaluated', 'rfqs.proposed_bid', 'rfqs.bid_as_evaluated', 'rfqs.discount', 'contractors.business_name', 'contractors.owner', 'contractors.address')
+    ->where([['procacts.procact_id', $procact_id], ['termination.termination_id', null]])
+    ->whereIn('project_bidders.bid_status', $status)
+    ->join('procacts', 'procacts.procact_id', 'rfq_projects.procact_id')
+    ->join('project_bidders', 'project_bidders.rfq_project_id', 'rfq_projects.rfq_project_id')
+    ->join('rfqs', 'rfqs.rfq_id', 'rfq_projects.rfq_id')
+    ->join('contractors', 'rfqs.contractor_id', 'contractors.contractor_id')
+    ->leftJoin('twg_evaluations', 'project_bidders.project_bid', 'twg_evaluations.project_bid')
+    ->leftJoin('termination', 'termination.project_bid', 'project_bidders.project_bid')
+    ->orderByRaw('ISNULL(minimum_cost), minimum_cost ASC')
+    ->first();
+
+  if ($bidders === null) {
+    $bidders = DB::table('bid_doc_projects')
+      ->select(DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words) AS minimum_cost"), 'twg_evaluations.twg_final_bid_evaluation', 'twg_evaluations.post_qual_start', 'twg_evaluations.post_qual_end', DB::raw("LEAST(bid_docs.bid_as_evaluated,bid_docs.proposed_bid,bid_docs.bid_in_words,twg_evaluations.twg_final_bid_evaluation) AS final_minimum_cost"), DB::raw("LEAST(bid_doc_projects.detailed_bid_as_read,bid_doc_projects.detailed_bid_as_evaluated,twg_evaluations.detailed_bid_as_calculated) AS minimum_detailed_cost"), 'project_bidders.bid_status', 'bid_docs.contractor_id', 'project_bidders.project_bid', 'bid_doc_projects.bid_doc_project_id', 'bid_doc_projects.detailed_bid_as_read', 'bid_doc_projects.detailed_bid_as_evaluated', 'bid_docs.proposed_bid', 'bid_docs.bid_as_evaluated', 'bid_docs.discount', 'contractors.business_name', 'contractors.owner', 'contractors.address')
+      ->where([['procacts.procact_id', $procact_id], ['termination.termination_id', null]])
+      ->whereIn('project_bidders.bid_status', $status)
+      ->join('procacts', 'procacts.procact_id', 'bid_doc_projects.procact_id')
+      ->join('project_bidders', 'project_bidders.bid_doc_project_id', 'bid_doc_projects.bid_doc_project_id')
+      ->join('bid_docs', 'bid_docs.bid_doc_id', 'bid_doc_projects.bid_doc_id')
+      ->join('contractors', 'bid_docs.contractor_id', 'contractors.contractor_id')
+      ->leftJoin('twg_evaluations', 'project_bidders.project_bid', 'twg_evaluations.project_bid')
+      ->leftJoin('termination', 'termination.project_bid', 'project_bidders.project_bid')
+      ->orderByRaw('ISNULL(minimum_cost), minimum_cost ASC')
+      ->first();
+  }
+
+  return $bidders;
+}
+
+
 
 function transferDataToSAPP($procact_id)
 {
@@ -814,12 +850,33 @@ function getRank($procact_id, $project_bid_id)
 
   $rank = 1;
   foreach ($bidders as $bidder) {
-    if ($bidder->project_bid === $project_bid_id) {
+    if ($bidder->project_bid == $project_bid_id) {
       break;
     } else {
       $rank = $rank + 1;
     }
   }
+  if (count($bidders) === 1) {
+    return "LONE BIDDER";
+  } else {
+    return $rank . date("S", mktime(0, 0, 0, 0, $rank, 0)) . " LCB";
+  }
+}
+
+function getBidRank($procact_id, $project_bid_id)
+{
+
+  $APP = new APP;
+  $bidders = $APP->getBiddersData($procact_id, 'responsive,active,non-responsive');
+  $rank = 1;
+  foreach ($bidders as $bidder) {
+    if ($bidder->project_bid == $project_bid_id) {
+      break;
+    } else {
+      $rank = $rank + 1;
+    }
+  }
+
   if (count($bidders) === 1) {
     return "LONE BIDDER";
   } else {

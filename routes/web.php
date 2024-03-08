@@ -34,6 +34,8 @@ Route::group(['middleware' => 'admin'], function () {
 
     Route::get('/home', 'HomeController@index')->name('home');
     Route::group(['prefix' => 'archive', 'as' => 'archive.'], function () {
+        Route::get('ppmp', 'ArchiveController@getPPMP')->name('ppmp');
+        Route::get('sppmp', 'ArchiveController@getSPPMP')->name('sppmp');
         Route::get('regular_app', 'ArchiveController@getRegularAPP')->name('regular_app');
         Route::get('supplemental_app', 'ArchiveController@getSupplementalAPP')->name('supplemental_app');
         Route::get('certificate_of_postings', 'ArchiveController@getCertificateOfPostingArchive')->name('certificate_of_postings');
@@ -47,6 +49,7 @@ Route::group(['middleware' => 'admin'], function () {
         Route::get('notice_of_disqualification', 'ArchiveController@getNoticeOfDisqualification')->name('notice_of_disqualification');
         Route::get('notice_of_post_qualification', 'ArchiveController@getNoticeofPostQualification')->name('notice_of_post_qualification');
         Route::get('notice_of_post_disqualification', 'ArchiveController@getNoticeofPostDisqualification')->name('notice_of_post_disqualification');
+        Route::get('notice_of_cancellation', 'ArchiveController@getNoticeOfCancellation')->name('notice_of_cancellation');
         Route::get('notice_to_losing_bidder', 'ArchiveController@getNoticeToLosingBidder')->name('notice_to_losing_bidder');
         Route::get('orders', 'ArchiveController@getOrderArchive')->name('orders');
         Route::get('resolution_recommending_awards', 'ArchiveController@getResolutionRecommendingAwards')->name('resolution_recommending_awards');
@@ -237,7 +240,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/submit_request_extension', 'ProcurementController@submitRequestExtension')->name('submit_request_extension');
 
     // Bidders
-    Route::get('/project_bidders/{id}', ['uses' => 'BidderController@getProjectBidders', 'as' => 'id']);
+    Route::get('/project_bidders/{id}', ['uses' => 'BidderController@getProjectBidders']);
     Route::get('/post_qual_project_bidders/{id}', ['uses' => 'BidderController@getPostQualProjectBidders', 'as' => 'id']);
     Route::get('/responsive_bidder/{id}', ['uses' => 'BidderController@setResponsiveBiddder', 'as' => 'id']);
     Route::post('/disqualify_bidder', 'BidderController@disqualifyBidder')->name('disqualify_bidder');
@@ -333,6 +336,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/autocomplete_project', 'APPController@autoCompletePlanTitlesForFile')->name('autocomplete_project');
     Route::post('/autocomplete_project_with_contracts', 'PerformanceBondController@autoCompleteProjectWithContracts')->name('autocomplete_project_with_contracts');
     Route::post('/filter_reverted', 'APPController@getRevertedProjects')->name('filter_reverted');
+    Route::post('/filter_completed', 'APPController@getCompletedProjects')->name('filter_completed');
     Route::post('/filter_terminated', 'APPController@getTerminatedProjects')->name('filter_terminated');
     Route::get('/for_review_projects', 'APPController@getForReviewProjects')->name('for_review_projects');
     Route::get('/for_rebid_projects', 'APPController@getForRebidProjects')->name('for_rebid_projects');
@@ -644,6 +648,16 @@ Route::group(['middleware' => 'auth'], function () {
     // Archiving
     Route::group(['prefix' => 'archive', 'as' => 'archive.'], function () {
 
+        // PPMP
+        Route::post('submit_ppmp', 'ArchiveController@submitPPMP')->name('submit_ppmp');
+        Route::post('get_ppmp_attachments', 'ArchiveController@getPPMPAttachments')->name('get_ppmp_attachments');
+        Route::post('delete_ppmp_attachment', 'ArchiveController@deletePPMPAttachment')->name('delete_ppmp_attachment');
+        Route::get('view_ppmp_attachment/{id}', 'ArchiveController@viewPPMPAttachment')->name('view_ppmp_attachment/{id}');
+        Route::get('view_ppmp_attachments/{id}', 'ArchiveController@viewPPMPAttachments')->name('view_ppmp_attachments/{id}');
+        Route::post('delete_ppmp_attachments', 'ArchiveController@deletePPMPAttachments')->name('delete_ppmp_attachments');
+        Route::post('filter_archive_ppmp', 'ArchiveController@filterArchivePPMP')->name('filter_archive_ppmp');
+
+
         // APP
         Route::post('submit_app', 'ArchiveController@submitApp')->name('submit_app');
         Route::post('get_project_attachments', 'ArchiveController@getProjectAttachments')->name('get_project_attachments');
@@ -692,6 +706,18 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('view_certificate_of_posting_attachments/{id}', 'ArchiveController@viewCertificateOfPostingAttachments')->name('view_certificate_of_posting_attachments/{id}');
         Route::post('delete_certificate_of_posting_attachment', 'ArchiveController@deleteCertificateOfPostingAttachment')->name('delete_certificate_of_posting_attachment');
         Route::post('delete_certificate_of_posting', 'ArchiveController@deleteCertificateOfPosting')->name('delete_certificate_of_posting');
+
+
+        // notice_of_cancellations
+        Route::get('notice_of_cancellations/{year}', 'ArchiveController@getNoticeOfCancellationArchive')->name('notice_of_cancellations/{year}');
+        Route::post('filter_notice_of_cancellation', 'ArchiveController@filterNoticeOfCancellation')->name('filter_notice_of_cancellation');
+        Route::post('submit_notice_of_cancellation', 'ArchiveController@submitNoticeOfCancellation')->name('submit_notice_of_cancellation');
+        Route::post('get_archive_notice_of_cancellation_attachments', 'ArchiveController@getArchiveNoticeOfCancellationAttachments')->name('get_archive_notice_of_cancellation_attachments');
+        Route::get('view_notice_of_cancellation_attachment/{id}', 'ArchiveController@viewNoticeOfCancellationAttachment')->name('view_notice_of_cancellation_attachment/{id}');
+        Route::get('view_notice_of_cancellation_attachments/{id}', 'ArchiveController@viewNoticeOfCancellationAttachments')->name('view_notice_of_cancellation_attachments/{id}');
+        Route::post('delete_notice_of_cancellation_attachment', 'ArchiveController@deleteNoticeOfCancellationAttachment')->name('delete_notice_of_cancellation_attachment');
+        Route::post('delete_notice_of_cancellation', 'ArchiveController@deleteNoticeOfCancellation')->name('delete_notice_of_cancellation');
+
 
         // minutes
         Route::get('minutes/{year}', 'ArchiveController@getMinuteArchive')->name('minutes/{year}');

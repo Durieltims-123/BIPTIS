@@ -343,7 +343,7 @@
         <div class="card shadow mt-2">
             <div class="card shadow border-0">
                 <div class="card-header">
-                    <h2 id="title">Detailed Project Bidders</h2>
+                    <h2 id="title">Detailed Project Bidders-</h2>
                 </div>
                 <div class="card-body">
 
@@ -522,6 +522,9 @@
 
 
     var oldInputs = '{{ count(session()->getOldInput()) }}';
+
+
+
     if (oldInputs > 2) {
         var process = "{{old('process')}}";
         if (process == "responsive") {
@@ -697,6 +700,7 @@
 
     // Non-responsive
     $('#bidders_table tbody').on('click', '.non-responsive-btn', function(e) {
+
         Swal.fire({
             title: 'Set Project Bidder as Non-responsive'
             , text: 'Are you sure to Set Bidder Status as Non-responsive?'
@@ -810,7 +814,9 @@
     });
 
     @if(in_array("update", $user_privilege))
+
     $('#bidders_table tbody').on('click', '.responsive-btn', function(e) {
+
         Swal.fire({
             title: 'Set Project Bidder as Responsive'
             , text: 'Are you sure to Set Bidder Status as Responsive?'

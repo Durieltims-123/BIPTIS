@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use App\User;
 use App\ArchiveAbstractAttachments;
 
-class ArchiveAbstract extends Model
+class ArchiveNoticeOfCancellation extends Model
 {
-  protected $table='archive_abstracts';
+  protected $table='archive_notice_of_cancellation';
   protected $primaryKey = 'id';
   protected $fillable=[
     "date_opened",

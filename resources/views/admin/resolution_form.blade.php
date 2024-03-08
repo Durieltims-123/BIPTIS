@@ -29,6 +29,14 @@
               <input type="text" id="resolution_number" name="resolution_number" class="form-control form-control-sm" value="{{old('resolution_number')}}" >
               <label class="error-msg text-red" >@error('resolution_number'){{$message}}@enderror</label>
             </div>
+            @if($resolution_type==="RRA")
+            <div class="form-group col-xs-6 col-sm-6 col-lg-6 mb-0">
+                <label for="twg_report_dates">TWG Report Dates</label>
+                <input type="text" id="twg_report_dates" name="twg_report_dates" class="form-control form-control-sm" value="{{old('twg_report_dates')}}">
+                <label class="error-msg text-red">@error('twg_report_dates'){{$message}}@enderror</label>
+            </div>
+            @endif
+
 
 
             <div class="form-group col-xs-6 col-sm-6 col-lg-6 mb-0" >
@@ -296,6 +304,7 @@ if(procact_ids!=""){
 else{
   $("#resolution_id").val('{{$resolution->resolution_id ?? ""}}');
   $("#resolution_number").val('{{$resolution->resolution_number ?? ""}}');
+  $("#twg_report_dates").val('{{$resolution->twg_report_dates ?? ""}}');
   $("#resolution_date").val('@if($resolution) {{date("m/d/Y", strtotime($resolution->resolution_date )) }}@endif');
   var procact_ids="{{$resolution_projects ??''}}";
   var procact_ids_array=procact_ids.split(",");
